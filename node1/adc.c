@@ -1,6 +1,6 @@
 #include "adc.h"
-
 #define ADC_BASE 0x1000
+
 
 void adc_init(void) {
     // Sett PD5 (OC1A) som output
