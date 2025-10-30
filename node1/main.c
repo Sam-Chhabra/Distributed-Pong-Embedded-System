@@ -21,6 +21,7 @@
 #include "can.h"
 
 // picocom -b 9600 /dev/ttyS0
+// cd Desktop/gr12/ByggernLab
 
 int main(void){
     UART_init(MYUBRR);
@@ -31,38 +32,38 @@ int main(void){
     user_io_init();
     can_init();
     _delay_ms(200);
-    mcp2515_set_mode(MODE_LOOPBACK);  
-   can_message tx_message = {
-        .id = 1,
-        .data_length = 8,             
-        .data = "helloooooo"
-    };
+    mcp2515_set_mode(MODE_LOOPBACK); 
+    CAN_int_init_PD2();   
 
-    can_message rx_message;
+can_message tx = { 
+    .id = 1, 
+    .data_length = 4, 
+    .data = {"woah"} };
+uint16_t inflight_id = 0;
+uint8_t  tx_inflight = 0;
 
-    while (1) {
-        _delay_ms(100);
-        can_try_send(&tx_message);
-        can_data_receive(&rx_message);
-        uint8_t len = rx_message.data_length;
-        if (len > 8) len = 8;          // safety
-        char msg[9];                   
-        for (uint8_t i = 0; i < len; i++) msg[i] = (char)rx_message.data[i];
-        msg[len] = '\0';
-
-        printf("Hello! We received a message.\r\n");
-        printf("Id: %u \r\n", (unsigned)rx_message.id);
-        printf("Length: %u \r\n", rx_message.data_length);
-        printf("Message: %s \r\n\r\n", msg);
-        tx_message.id = (tx_message.id + 1) & 0x07FF;
+for(;;){
+    _delay_ms(600);
+    CAN_service();
+    if (!tx_inflight) {
+        if (can_try_send(&tx)) {
+            inflight_id = tx.id;    
+            tx_inflight = 1;         
+        }
+    }
+    can_message rx;
+    if (CAN_try_get(&rx)) {
         
-        _delay_ms(1000);
+        uint8_t len = rx.data_length > 8 ? 8 : rx.data_length;
+        char msg[9]; for (uint8_t i=0;i<len;i++) msg[i]=(char)rx.data[i]; msg[len]='\0';
+
+        printf("Id: %u\r\nLength: %u\r\nMessage: %s\r\n\r\n",
+               (unsigned)rx.id, rx.data_length, msg);
+        tx.id = (inflight_id + 1) & 0x7FF;
+        tx_inflight = 0;
     }
 
-    return 0;
-
-  
-
+}
 }
 
 /*    can_message tx_message = {

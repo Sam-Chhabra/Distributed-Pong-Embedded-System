@@ -8,9 +8,9 @@ MCUTYPE = __SAM3X8E__
 SOURCE_FILES = \
 	$(BOOTUP) \
 	main.c \
-#	../path_to/uart.c \
-#   filename1.c \
-#   filename2.c \
+	startercode/uart.c \
+	startercode/can.c \
+	startercode/time.c
 #	filenameN.c
 
 # Feel free to ignore anything below this line

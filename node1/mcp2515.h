@@ -19,7 +19,7 @@
 #define MCP_READ_STATUS 0b10100000
 #define MCP_CANCTRL		0x0F
 #define MODE_LOOPBACK   0x40
-
+#define MODE_NORMAL   0x00
 uint8_t mcp2515_init();
 uint8_t mcp2515_read(uint8_t address);
 void mcp2515_write(uint8_t address, uint8_t data);

@@ -4,7 +4,10 @@
     "address_decoder.h": "c",
     "spi.h": "c",
     "stdlib.h": "c",
-    "mcp2515.h": "c"
+    "mcp2515.h": "c",
+    "system_sam3x.h": "c",
+    "sam3xa.h": "c",
+    "sam.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
