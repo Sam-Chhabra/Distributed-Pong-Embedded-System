@@ -1,4 +1,5 @@
 #include "adc.h"
+#include "can.h"
 #define ADC_BASE 0x1000
 
 
@@ -90,7 +91,6 @@ volatile joy_direction get_joystickdirection(adc_values_t pos, int16_t center_x,
     else {
         return NEUTRAL;
     }
-
 }
 
 
@@ -132,5 +132,35 @@ adc_values_t pos_calibrate(){
 //uint8_t pos_read(void){
     //return adc_read(0);  // Joystick X
 //}
+//adc_values_t pos_calibrate()
+void send_joystick_pos(){
+    adc_values_t cal_data = pos_calibrate(); //kalibrerer
+    //#define MODE_NORMAL   0x00
+    mcp2515_set_mode(0x00); //normal mode (setter cnf-reg inni her)
 
+ 
+        uint8_t joy_data = get_data_from_joystick(cal_data);
+        can_message message_to_node2 = {
+            .id = 0x43,
+            .data_length = 1,
+            .data = joy_data
+        };
+    can_try_send(&message_to_node2);
+    _delay_ms(100);
+    
 
+    
+}
+//joy_direction get_joystickdirection(adc_values_t pos, int16_t center_x, int16_t center_y)
+
+uint8_t get_data_from_joystick(adc_values_t cal_data){
+    joy_direction dir= get_joystickdirection(position(cal_data.joystick_x,cal_data.joystick_y), cal_data.joystick_x, cal_data.joystick_y);
+    switch(dir){
+        case LEFT: return 0x01;
+        case RIGHT: return 0x02;
+        case UP: return 0x03;
+        case DOWN: return 0x04;
+        default: return 0x00;
+    };
+}
+//position(int16_t center_x, int16_t center_y) 

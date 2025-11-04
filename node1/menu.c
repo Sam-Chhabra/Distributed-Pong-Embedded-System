@@ -1,6 +1,6 @@
 #include "menu.h"
 #include "adc.h"
-
+#include "oled.h"
 //pb 0 = joy btn
 
 #define MENU_LINE_COUNT 4

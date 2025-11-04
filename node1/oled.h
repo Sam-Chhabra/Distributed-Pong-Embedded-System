@@ -1,7 +1,6 @@
 #include <avr/pgmspace.h>
-#include "spi.h"
+
 #include <util/delay.h>
-#include "fonts.h"
 
 #define DC_BIT PB2
 
@@ -17,3 +16,4 @@ void OLED_print_char(char letter);
 void OLED_print(char* word);
 void OLED_clear_screen();
 void OLED_set_brightness(uint8_t lvl);
+void OLED_write_cmd(uint8_t cmd);

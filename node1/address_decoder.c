@@ -1,4 +1,6 @@
 #include "address_decoder.h"
+#include "uart.h"
+#include "sram.h"
 
 
 //functions to poke memory locations and test the decoder

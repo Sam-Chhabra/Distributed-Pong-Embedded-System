@@ -28,3 +28,9 @@ uint8_t can_send(CAN_MESSAGE* can_msg, uint8_t mailbox_id);
 uint8_t can_receive(CAN_MESSAGE* can_msg, uint8_t mailbox_id);
 
 #endif /* CAN_CONTROLLER_H_ */
+
+
+
+//    MCP_clear_interrupt_flags(0xFF);
+ //   MCP_enable_interrupts(MCP_RX_INT | MCP_TX_INT);
+ //   MCP_clear_interrupt_flags(0xFF);

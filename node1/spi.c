@@ -1,6 +1,7 @@
 #include "spi.h"
 
 
+
 void spi_init(){
     //pb3 and pb4 as output, SS1, SS2
     DDRB |= (1 << DISP_SS2) | (1 << IO_SS1);

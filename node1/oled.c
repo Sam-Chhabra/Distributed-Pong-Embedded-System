@@ -1,4 +1,6 @@
 #include "oled.h"
+#include "fonts.h"
+#include "spi.h"
 
 
 void OLED_init() // PDF:example appended to the datasheet

@@ -6,8 +6,15 @@
 #include <stdint.h>
 #include <string.h>
 #include "startercode/time.h"
+
+#include "startercode/uart.h"
+#include "../can_node_2/can_controller.h"
+#include "../can_node_2/can_interrupt.h"
+
+
+//#include "../node1/mcp2515.h"
 //#include <util/delay.h>
-//picocom -b 115200 /dev/ttyACM1
+//picocom -b 9600 /dev/ttyACM1
 
 
 /*
@@ -19,10 +26,20 @@
  * If you get errors such as "arm-none-eabi-gcc: no such file", you may need to reinstall the arm gcc packages using
  * apt or your favorite package manager.
  */
-#include "startercode/uart.h"
+
 //acm0
-#define F_CPU 84000000
+#define F_CPU 84000000 
 #define BAUD_RATE 9600
+#define BIT_RATE 250000
+
+
+#define BRP (F_CPU / (BIT_RATE * 16)) -1;
+#define phaseseg2 6-1;
+#define phaseseg1   phaseseg2+1;
+#define propag   2-1;
+#define SJW   3;
+#define smp 0;
+
 
 void UART_verification() {
     uart_init(F_CPU, BAUD_RATE);
@@ -33,28 +50,66 @@ int main()
 SystemInit();
 UART_verification();
 
+
 WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
 
+//uint8_t BRP = 20;
+//uint8_t phaseseg2=4;
+//uint8_t phaseseg1 = 7;
+//uint8_t propag = 1;
+//uint8_t SJW = 2;
+//uint8_t smp=0;
 
-PMC ->PMC_PCER0 = (1 << ID_PIOB); //starter klokka
-//PIOB->PIO_PER |= PIO_PB12; 
-PIOB->PIO_OER |= PIO_PB12; //output enble
-PIOB->PIO_SODR |= PIO_PB12; //sette høy
+//PMC ->PMC_PCER0 = (1 << ID_PIOB); //starter klokka
 
-time_spinFor(msecs(2000));
 
-PIOB->PIO_CODR |= PIO_PB12; //lav
+uint32_t can_br = ((smp<<24) | (BRP<<16) | (SJW<<12) | (propag<<8) | (phaseseg1<<4) | phaseseg2);
+//uint8_t rxInterrupt=1;
+can_init_def_tx_rx_mb(can_br);
 
-time_spinFor(msecs(2000));
 
-PIOB->PIO_SODR |= PIO_PB12; //høy
 
-time_spinFor(msecs(2000));
+//#define txMailbox 0
+//#define rxMailbox 1
+char can_sr = CAN0->CAN_SR; 
+CAN_MESSAGE message;
+while(1){
+//time_spinFor(msecs(200));
+	if (!can_receive(&message,0)){
+        if (message.id==0x43||message.id==0x01){
+            printf("%u\n", (unsigned)message.data[0]); 
+        }
+    }
 
-PIOB->PIO_CODR |= PIO_PB12; //lav
+//msecs(200);
+//time_spinFor(2);
+}}
 
-}
-
+/*__attribute__((packed)) struct CanInit {
+    union {
+        struct {
+            uint32_t phase2:4;  // Phase 2 segment
+            uint32_t propag:4;  // Propagation time segment
+            uint32_t phase1:4;  // Phase 1 segment
+            uint32_t sjw:4;     // Synchronization jump width
+            uint32_t brp:8;     // Baud rate prescaler
+            uint32_t smp:8;     // Sampling mode
+        };
+        uint32_t reg;
+    };
+};
+		if(can_sr & CAN_SR_MB1)  //Mailbox 1 event
+		{
+            can_receive(&message, 1);
+            printf("%d \n", message.data);
+		}
+        
+		else if(can_sr & CAN_SR_MB2) //Mailbox 2 event
+		{
+			can_receive(&message, 2);
+            printf("%d \n", message.data);
+		}
+*/
 
 /*WDT->WDT_MR = WDT_MR_WDDIS;      // Disable Watchdog
 

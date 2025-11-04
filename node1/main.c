@@ -1,6 +1,6 @@
 // main.c
 #define F_CPU 4915200UL
-#define BAUD_RATE 9600
+#define BAUD_RATE 250000
 #define MYUBRR (F_CPU/16/BAUD_RATE-1)
 
 #include "uart.h"
@@ -28,14 +28,68 @@ int main(void){
     fdevopen(UART_transmit, UART_receive);
     SRAM_init();
     adc_init();
+    spi_init();
     spi_deselectSlave();
     user_io_init();
-    can_init();
+    can_normal_init();
+    
     _delay_ms(200);
-    mcp2515_set_mode(MODE_LOOPBACK); 
+    //mcp2515_set_mode(MODE_NORMAL); 
     CAN_int_init_PD2();   
+    //CAN_init_normal();
+    //printf("hei");
+    //send_joystick_pos();
+   
+    while(1){
+        //printf("txb %d \n",mcp2515_read(MCP_TXB0CTRL));
+        //printf(" txreq %d \n", MCP_TXREQ_BIT);
+//_delay_ms(2000);
+    //if (!(mcp2515_read(MCP_TXB0CTRL) & MCP_TXREQ_BIT)){
+        //printf("tom");  
+            //send_joystick_pos();
+        _delay_ms(100);
+        can_message tx_message = {
+            .id = 0x01,
+            .data_length = 5,             
+            .data = {0x01}
+        };
+        printf("%d\n",can_try_send(&tx_message));
 
-can_message tx = { 
+   // }
+    }
+}
+
+
+
+
+
+/*    can_message tx_message = {
+        .id = 1,
+        .data_length = 5,             
+        .data = "helloooooo"
+    };
+
+    can_message rx_message;
+
+    while (1) {
+        tx_message.id = (tx_message.id + 1) & 0x07FF;
+        can_try_send(&tx_message);
+        can_data_receive(&rx_message);
+        uint8_t len = rx_message.data_length;
+        if (len > 8) len = 8;          // safety
+        char msg[9];                   
+        for (uint8_t i = 0; i < len; i++) msg[i] = (char)rx_message.data[i];
+        msg[len] = '\0';
+
+        printf("Hello! We received a message.\r\n");
+        printf("Id: %u \r\n", (unsigned)rx_message.id);
+        printf("Length: %u \r\n", rx_message.data_length);
+        printf("Message: %s \r\n\r\n", msg);
+        _delay_ms(1000);
+    }
+
+    return 0;
+    can_message tx = { 
     .id = 1, 
     .data_length = 4, 
     .data = {"woah"} };
@@ -63,32 +117,4 @@ for(;;){
         tx_inflight = 0;
     }
 
-}
-}
-
-/*    can_message tx_message = {
-        .id = 1,
-        .data_length = 5,             
-        .data = "helloooooo"
-    };
-
-    can_message rx_message;
-
-    while (1) {
-        tx_message.id = (tx_message.id + 1) & 0x07FF;
-        can_try_send(&tx_message);
-        can_data_receive(&rx_message);
-        uint8_t len = rx_message.data_length;
-        if (len > 8) len = 8;          // safety
-        char msg[9];                   
-        for (uint8_t i = 0; i < len; i++) msg[i] = (char)rx_message.data[i];
-        msg[len] = '\0';
-
-        printf("Hello! We received a message.\r\n");
-        printf("Id: %u \r\n", (unsigned)rx_message.id);
-        printf("Length: %u \r\n", rx_message.data_length);
-        printf("Message: %s \r\n\r\n", msg);
-        _delay_ms(1000);
-    }
-
-    return 0;*/
+}*/

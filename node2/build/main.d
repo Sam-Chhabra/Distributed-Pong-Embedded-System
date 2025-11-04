@@ -72,4 +72,5 @@ build/main.o: main.c sam/sam3x/include/sam.h sam/sam3x/include/sam3x8e.h \
  sam/sam3x/include/instance/instance_rtc.h \
  sam/sam3x/include/instance/instance_gpbr.h \
  sam/sam3x/include/pio/pio_sam3x8e.h startercode/time.h \
- startercode/uart.h
+ startercode/uart.h sam/../can_node_2/can_controller.h \
+ sam/../can_node_2/can_interrupt.h

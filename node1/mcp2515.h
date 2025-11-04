@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <util/delay.h>
-#include "spi.h"
 #include <stdio.h>
 
-#define INT PD2
+#define MCP_INT PD2
 #define MCP_READ 0x03
 #define MCP_WRITE 0x02
 #define MCP_CANSTAT 0x0E
@@ -19,7 +18,15 @@
 #define MCP_READ_STATUS 0b10100000
 #define MCP_CANCTRL		0x0F
 #define MODE_LOOPBACK   0x40
-#define MODE_NORMAL   0x00
+#define MODE_NORMAL   0x00 
+#define MCP_CNF1        0x2A
+#define MCP_CNF2        0x29
+#define MCP_CNF3        0x28
+#define MCP_CANINTE 0b00101011
+#define MCP_RXB0CTRL 0b01100000
+#define MCP_RXB1CTRL 0b01110000
+#define MCP_CANINTF 0b00101100
+
 uint8_t mcp2515_init();
 uint8_t mcp2515_read(uint8_t address);
 void mcp2515_write(uint8_t address, uint8_t data);

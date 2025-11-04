@@ -1,3 +1,4 @@
+
 #include <avr/io.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -26,3 +27,6 @@ volatile joy_direction get_joystickdirection(adc_values_t pos, int16_t center_x,
 //uint8_t pos_read(void);
 
 adc_values_t pos_calibrate();
+
+void send_joystick_pos();
+uint8_t get_data_from_joystick(adc_values_t cal_data);

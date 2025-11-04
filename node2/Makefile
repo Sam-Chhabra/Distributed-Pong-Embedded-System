@@ -10,7 +10,8 @@ SOURCE_FILES = \
 	main.c \
 	startercode/uart.c \
 	startercode/can.c \
-	startercode/time.c
+	startercode/time.c \
+	can_node_2/can_controller.c
 #	filenameN.c
 
 # Feel free to ignore anything below this line

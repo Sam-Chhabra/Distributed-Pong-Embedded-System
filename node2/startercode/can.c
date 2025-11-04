@@ -19,7 +19,7 @@ void can_printmsg(CanMsg m){
 #define rxMailbox 1
 
 
-void can_init(CanInit init, uint8_t rxInterrupt){
+static void can_init(CanInit init, uint8_t rxInterrupt){
     // Disable CAN
     CAN0->CAN_MR &= ~CAN_MR_CANEN; 
     
