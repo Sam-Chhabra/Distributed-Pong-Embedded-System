@@ -21,12 +21,27 @@
 #ifndef MCP_TXB0SIDL
 #define MCP_TXB0SIDL    0x32
 #endif
+#ifndef MCP_TXB1SIDH
+#define MCP_TXB1SIDH    0b01000001
+#endif
+#ifndef MCP_TXB1SIDL
+#define MCP_TXB1SIDL    0b01000010
+#endif
 #ifndef MCP_TXB0DLC
 #define MCP_TXB0DLC     0x35
 #endif
 #ifndef MCP_TXB0D0
 #define MCP_TXB0D0      0x36
 #endif
+
+#ifndef MCP_TXB1DLC
+#define MCP_TXB1DLC     0b01000101
+#endif
+#ifndef MCP_TXB1D0
+#define MCP_TXB1D0      0b01000110
+#endif
+
+
 
 #ifndef MCP_RXB0SIDH
 #define MCP_RXB0SIDH    0x61
@@ -42,7 +57,7 @@
 #endif
 
 #define MODE_LOOPBACK   0x40
-
+#define MCP_READ_RX0 0x90
 
 
 
@@ -63,19 +78,21 @@
 
 
 
-#define BIT_RATE  250000;
-#define FOSC_MCP  16000000;
-#define BRP   (FOSC_MCP / (2*BIT_RATE * 16)) -1;
-#define phaseseg2 6-1;
-#define phaseseg1   phaseseg2+1;
-#define propag   2-1;
-#define SJW   1-1;
-#define smp 0;
+#define BIT_RATE  125000
+#define FOSC_MCP  16000000
+#define BRP   ((FOSC_MCP / (2*BIT_RATE * 16)) -1)
+#define phaseseg2 (6-1)
+#define phaseseg1   (phaseseg2+1)
+#define propag   (2-1)
+#define SJW   (1-1)
+#define smp 0
+
+
 
 typedef struct {
     uint16_t id;          // 11-bit standard ID
     uint8_t  data_length; // 0..8
-    uint8_t  data[8];
+    char data[8];
 } can_message;
 
 /* Init MCP2515 in loopback, clean state, enable chip IRQs */
@@ -87,13 +104,15 @@ void CAN_int_init_PD2(void);
 /* Call this in your main loop to handle RX/TX work signaled by ISR */
 void CAN_service(void);
 
-/* Non-blocking send: returns 1 if queued, 0 if TX buffer busy */
-uint8_t can_try_send(const can_message* msg, CAN_TX_BUFFER buffer);
+/* sender can-mld */
+void can_send(const can_message* msg, uint8_t buffer_n);
 
 
 /* One-message mailbox: returns 1 if a new frame was available and copied into *out */
 uint8_t CAN_try_get(can_message* out);
 
-void CAN_init_normal();
+void can_reset();
 
 //void can_receive(can_message* message, CAN_RX_BUFFER buffer);
+
+void can_send1(const can_message* msg, uint8_t buffer_n);

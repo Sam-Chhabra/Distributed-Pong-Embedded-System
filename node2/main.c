@@ -28,18 +28,34 @@
  */
 
 //acm0
-#define F_CPU 84000000 
+#define F_CPU 84000000
 #define BAUD_RATE 9600
-#define BIT_RATE 250000
+#define BIT_RATE 125000
+#define MCK 42000000 
+
+//#define BRP ((MCK / (BIT_RATE * 16)) )
+//#define phaseseg2 (6)
+//#define phaseseg1   (phaseseg2+1)
+//#define propag   (2)
+//#define SJW   1
+//#define smp 0
+
+#define BRP ((F_CPU/2000000) -1)
+#define phaseseg2 1
+#define phaseseg1   5
+#define propag   6
+#define SJW   0
+#define smp 0
 
 
-#define BRP (F_CPU / (BIT_RATE * 16)) -1;
-#define phaseseg2 6-1;
-#define phaseseg1   phaseseg2+1;
-#define propag   2-1;
-#define SJW   3;
-#define smp 0;
-
+void can_printmsg1(CAN_MESSAGE *m){
+    printf("CanMsg(id:%d, length:%d, data:{", m->id, m->data_length);
+    
+    for(uint8_t i = 0; i < m->data_length; i++){
+        printf("%c", m->data[i]);
+    }
+    printf("})\n");
+}
 
 void UART_verification() {
     uart_init(F_CPU, BAUD_RATE);
@@ -71,15 +87,19 @@ can_init_def_tx_rx_mb(can_br);
 
 //#define txMailbox 0
 //#define rxMailbox 1
-char can_sr = CAN0->CAN_SR; 
+//char can_sr = CAN0->CAN_SR; 
 CAN_MESSAGE message;
 while(1){
 //time_spinFor(msecs(200));
-	if (!can_receive(&message,0)){
-        if (message.id==0x43||message.id==0x01){
-            printf("%u\n", (unsigned)message.data[0]); 
+			//can_receive(&message, 2);
+            //printf("melding: %d\n", message.data[0]);
+            //can_receive(&message, 1);
+            //time_spinFor(msecs(200));
+        if (!can_receive(&message, 0)){
+            //printf("melding: %d\n\r", message.data[0]);
+            can_printmsg1(&message);
         }
-    }
+		
 
 //msecs(200);
 //time_spinFor(2);

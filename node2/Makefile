@@ -11,7 +11,8 @@ SOURCE_FILES = \
 	startercode/uart.c \
 	startercode/can.c \
 	startercode/time.c \
-	can_node_2/can_controller.c
+	can_node_2/can_controller.c \
+	can_node_2/can_interrupt.c
 #	filenameN.c
 
 # Feel free to ignore anything below this line

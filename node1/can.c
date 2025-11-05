@@ -1,4 +1,5 @@
 #include "can.h"
+#include "spi.h"
 #include "mcp2515.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -7,7 +8,6 @@
 static volatile uint8_t can_irq_flag = 0;
 static volatile uint8_t rx_available = 0;
 static can_message rx_last;
-
 
 static inline void id_to_regs(uint16_t id, uint8_t* sidh, uint8_t* sidl){
     *sidh = (uint8_t)(id >> 3);
@@ -53,11 +53,12 @@ static void mcp_zero_txb0(void){
 }
 
 
-static void CAN_init_loopback(void)
+void CAN_init_loopback(void)
 {
     mcp2515_init();
-    mcp2515_reset();
-
+    _delay_ms(100);
+    //mcp2515_reset();
+    
     mcp2515_write(MCP_CNF1, 0x03); 
     mcp2515_write(MCP_CNF2, 0x90);
     mcp2515_write(MCP_CNF3, 0x02);
@@ -76,40 +77,36 @@ static void CAN_init_loopback(void)
     mcp2515_bit_modify(MCP_CANINTF, 0xFF, 0);
 }
 
-void CAN_init_normal(){
 
+
+void can_normal_init(void){
+
+    //while (mcp2515_init());
+    mcp2515_init();
+    _delay_ms(100);
+    // set can timing
     //uint8_t CNF1 = (SJW << 6)|(BRP<<0);
     //uint8_t CNF2 = (smp<<6)|(phaseseg1<<3)|(propag<<0);
     //uint8_t CNF3 = (phaseseg2 << 0);
 
-    //uint8_t CNF1 = 0x41;
-    //uint8_t CNF2 = (0x80|(7<<3)|1);
-    //uint8_t CNF3 = 0x04;
+    uint8_t CNF1 = 0x43;
+    uint8_t CNF2 = 0xb5;
+    uint8_t CNF3 = 0x01;
 
-    char CNG1=0x43;
-    char CNG2 = 0xb5;
-    char CNG3 = 0x01;
-    
-    mcp2515_write(MCP_CNF1, CNG1);
-    mcp2515_write(MCP_CNF2, CNG2);
-    mcp2515_write(MCP_CNF3, CNG3);
-
-    mcp2515_set_mode(MODE_NORMAL);
-}
-
-void can_normal_init(void){
-    while (mcp2515_init());
-    
-    // set can timing
-    char CNF1 = 0x43;
-    char CNF2 = 0xb5;
-    char CNF3 = 0x01;
-    
-    mcp2515_write(MCP_CNF1, CNF1);
-    mcp2515_write(MCP_CNF2, CNF2);
     mcp2515_write(MCP_CNF3, CNF3);
+    mcp2515_write(MCP_CNF2, CNF2);
+    mcp2515_write(MCP_CNF1, CNF1);
+    //printf("cnf3: %d %d ",mcp2515_read(MCP_CNF3), CNF3);
+//printf("cnf2: %d %d",mcp2515_read(MCP_CNF2), CNF2);
+//printf("cnf1: %d %d ",mcp2515_read(MCP_CNF1), CNF1); 
+   char interrupt_mask = 0b00111111;
+    mcp2515_write(MCP_CANINTE, interrupt_mask);
 
-    // Enable interrupt
+    //mcp2515_bit_modify(MCP_CANCTRL, 0x08, 0x08);
+
+mcp2515_set_mode(MODE_NORMAL);
+
+   /*    // Enable interrupt
     char interrupt_mask = 0b00111111;
     mcp2515_write(MCP_CANINTE, interrupt_mask);
 
@@ -136,7 +133,8 @@ void can_normal_init(void){
 
     //mcp2515_set_mode(MODE_NORMAL);
 
-    //CAN_init_loopback();
+    //CAN_init_loopback();*/
+
 }
 
 
@@ -146,62 +144,95 @@ void CAN_int_init_PD2(void)
     PORTD |=  (1 << PD2);          
     MCUCR |=  (1 << ISC01);        
     GICR  |=  (1 << INT0);
-    //sei();
+    sei();
 }
-
-
 
 
 
 //i oppgaven var det buffer 0 vi ville sende til
-uint8_t can_try_send(const can_message* msg, CAN_TX_BUFFER buffer)
+void can_send(const can_message* msg, uint8_t buffer_n)
 {
-    if (MCP2515_read(MCP_TXB0CTRL + CAN_BUFFER_SIZE*buffer)&0x08){
-    printf("CAN bus is busy");
-    return 1;
+
+//uint8_t ctrl = mcp2515_read(MCP_TXB0CTRL);  // les registeret
+//if (ctrl & 0x08) {                          // test TXREQ-bitten (bit 3)
+ //   printf("TXB0 busy\n");
+   // return 1;   // eller 0 hvis du vil “EAGAIN”
+//}
+
+    //printf("CAN bus is not busy");
+    uint8_t offset = 0x10 * buffer_n;
+    //send id 
+    mcp2515_write(MCP_TXB0SIDH+offset, (uint8_t)(msg->id >> 3)); //upper 8 bits
+    mcp2515_write(MCP_TXB0SIDL+offset, (uint8_t)(msg->id <<5));
+
+    //send data length
+    uint8_t length = msg->data_length & 0xF; //can only send 8 bytes
+    mcp2515_write(MCP_TXB0DLC + offset, length);
+
+    //write data 
+    for (uint8_t i=0;i<length; i++){
+        if (i>= 8) break;
+        mcp2515_write(MCP_TXB0D0 + offset + i, msg->data[i]);
     }
-
-    uint8_t sidh, sidl;
-    //id_to_regs(msg->id, &sidh, &sidl);
-    sidl = ((can_message->id/0b1000));
-    sidl = ((can_message->id % 0b1000 )<<5);
-
-    mcp2515_write(MCP_TXB0SIDH+CAN_BUFFER_SIZE*buffer, sidl);
-
-    uint8_t can_txb0sidl = mcp2515_read(MCP_TXB0SIDL + + CAN_BUFFER_SIZE*buffer);
-    can_txb0sidl &= ^(0xE0);
-    can_txb0sidl strek = sidl;
-    mcp2515_write(MCP_TXB0SIDL + CAN_BUFFER_SIZE*buffer, can_txb0sidl);
-    uint8_t length=can_message.data_length;
-    //max length =8
-    if( can_message.data_length>8){
-    printf("message too long");
-    length=8;
-    }
-    mcp2515_write(MCP_TXB0DLC+CAN_BUFFER_SIZE*buffer, length);
-
-    for (uint8_t i = 0; i < msg->data_length; i++){
-    mcp2515_write(MCP_TXB0D0 + CAN_BUFFER_SIZE*buffer+i, message->data[i]);
-    }
-
-    mcp2515_request_to_send((buffer==2),(buffer==1), (buffer==0)); /* TXB0 */
-    return 0;
+    mcp2515_request_to_send(buffer_n);   
 }
 
-/*void can_receive(can_message* message, CAN_RX_BUFFER buffer){
-    char sidh = mcp2515_read(MCP_RXB0SIDH + CAN_BUFFER_SIZE*buffer);
-    char sidl = mcp2515_read(MCP_RXB0SIDL + CAN_BUFFER_SIZE*buffer);
-    message->id = ((sidh << 3) strek ((sidl<<5)&0b111));
-    message->data.length = (mcp2515_read(MCP_RXB0DLC + CAN_BUFFER_SIZE*buffer)&0x0F);
-    if (message->data_length>8){
-    message->data_length=8;
+void can_send1(const can_message* msg, uint8_t buffer_n)
+{
+ //   if (MCP2515_read(MCP_TXB0CTRL + CAN_BUFFER_SIZE*buffer)&0x08){
+ //   printf("CAN bus is busy");
+ //   return 1;
+  //  }
+    uint8_t offset = 0x10 * buffer_n;
+    //send id 
+    mcp2515_write(MCP_TXB1SIDH+offset, (uint8_t)(msg->id >> 3)); //upper 8 bits
+    mcp2515_write(MCP_TXB1SIDL+offset, (uint8_t)(msg->id & 0x07)<<5);
+
+    //send data length
+    uint8_t length = msg->data_length & 0xF; //can only send 8 bytes
+    mcp2515_write(MCP_TXB1DLC + offset, length);
+
+    //write data 
+    for (uint8_t i=0;i<length; i++){
+        if (i>= 8) break;
+        mcp2515_write(MCP_TXB1D0 + offset + i, msg->data[i]);
     }
-    _delay_ms(100);
-    for (int i=0;i<message->data_length;i++){
-    message->data[i]=mcp2515_read(MCP_RIB0DM + CAN_BUFFER_SIZE*buffer+i);
+    mcp2515_request_to_send(buffer_n);
+
+   
+}
+
+
+
+void can_read(can_message *message, uint8_t rx_buffer_n){
+    printf("trying to read buffer RD %D \n", rx_buffer_n);
+    spi_selectSlave(MCP_SS);
+    spi_write(MCP_READ_RX0 + 0x4 * rx_buffer_n); // initiate read of RX buffer n
+
+    // Lese id (fra bit 0 til 16)
+    uint8_t sidh = spi_read();
+    uint8_t sidl = spi_read();
+
+    message->id = ((uint16_t) sidh << 3)|(sidh >> 5); // ???
+
+    // Utvidet ID (fra bit 16 til 32)
+    spi_read();
+    spi_read();
+
+    // Lese lengde
+    message->data_length = spi_read() & 0xF; // ???
+
+    // Lese data
+    for (uint8_t i = 0; i < message->data_length; i++){
+    message->data[i] = spi_read();
     }
-    printf("Received message!");
-}*/
+
+    message->data[message->data_length] = '\0'; // ???
+    spi_deselectSlave();
+    UART_transmit("Received message: \n");
+    printf("ID: %d \n Length: %d \n Data: %d \n", message->id, message->data_length, message->data);
+}
+
 
 
 
@@ -257,3 +288,9 @@ uint8_t CAN_try_get(can_message* out){
 /*mcp2515_write(MCP_CNF1,0x01);
 mcp2515_write(MCP_CNF2,0x89);
 mcp2515_write(MCP_CNF3,0x02);*/
+
+void can_reset(){
+    spi_selectSlave(MCP_SS);
+    spi_write(MCP_RESET);
+    spi_deselectSlave();
+}

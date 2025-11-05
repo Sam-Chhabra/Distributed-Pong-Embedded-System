@@ -2,42 +2,29 @@
 #include "spi.h"
 #include "uart.h"
 
-
 uint8_t mcp2515_init(){
     mcp2515_reset();
-    mcp2515_bit_modify(MCP_CANINTF,0xFF,0x00);
+    //mcp2515_bit_modify(MCP_CANINTF,0xFF,0x00);
     _delay_ms(100);
-
     uint8_t value;
-    spi_init(); //?
-    
+    //spi_init(); //?
+    //mcp2515_set_mode(MODE_CONFIG);
+    //_delay_ms(200);
+    value = mcp2515_read(MCP_CANSTAT);
     _delay_ms(10);
-      value = mcp2515_read(MCP_CANSTAT);
     printf("CANSTAT after reset: 0x%02X\n", value);  // should be 0x8x
     if ((value & MODE_MASK) != MODE_CONFIG){
         //UART_transmit("MCP2515 is NOT in configuration mode after reset!\n");
-        printf("ikke i config mode");
+        //printf("ikke i config mode");
+        printf("MCP2515 is NOT in configuration mode after reset!\n");
         return 1;
     }
-    printf("MCP2515 is NOT in configuration mode after reset!\n");
+    //
     mcp2515_write(MCP_RXB0CTRL, 0x60);
     mcp2515_write(MCP_RXB1CTRL,0X60);
-    char interrupt_mask = 0b00111111;
-    mcp2515_write(MCP_CANINTE, interrupt_mask);
-
-    DDRB  |= (1 << MCP_SS);
-    PORTB |= (1 << MCP_SS);
-    // 2) Keep PB4 (hardware SS) OUTPUT + HIGH so AVR stays SPI master
-    DDRB  |= (1 << PB4);
-    PORTB |= (1 << PB4);
-
-    // 3) Deassert other slaves' CS (example: OLED on PB3)
-DDRB  |= (1 << PB3);
-PORTB |= (1 << PB3);
-
-mcp2515_write(MCP_INT, 0x00); //clear interrupts
+    mcp2515_write(MCP_INT, 0x00); //clear interrupts
     return 0;
-    //more initialization
+
 }
 uint8_t mcp2515_read(uint8_t address){
     //lowering cs pin

@@ -46,9 +46,9 @@ uint8_t navigation(uint8_t x, uint8_t y){
 
     while ((PINB & (1 << JOY_BTN))) { // kjør mens knappen IKKE trykkes
 
-        pos_joystick = position(x, y);
+        position(x, y,&pos_joystick);
         _delay_ms(10);
-        joy_dir = get_joystickdirection(pos_joystick, x, y);
+        joy_dir = get_joystickdirection(&pos_joystick, x, y);
         _delay_ms(10);
         uint8_t moveable;
 
