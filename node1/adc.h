@@ -23,12 +23,10 @@ void adc_init(void);
 void adc_read_raw(adc_values_t *values); //volatile
 void position(int16_t center_x, int16_t center_y, adc_values_t *pos);
 volatile joy_direction get_joystickdirection(adc_values_t *pos, int16_t center_x, int16_t center_y);
+char get_joystickdirection1(adc_values_t *pos, int16_t center_x, int16_t center_y);
 //void pos_calibrate();
 //uint8_t pos_read(void);
 
 void pos_calibrate(adc_values_t *data);
 
 void send_joystick_pos(adc_values_t *cal_data);
-uint8_t get_data_from_joystick(adc_values_t *cal_data);
-
-void send_pos(adc_values_t *pos);

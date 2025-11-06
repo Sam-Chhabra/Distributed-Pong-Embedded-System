@@ -44,52 +44,77 @@ void adc_read_raw(adc_values_t *values){
 }
 
 void position(int16_t center_x, int16_t center_y, adc_values_t *pos) {
-    adc_values_t values;
-    adc_read_raw(&values); // henter joystick- og slider-verdier
+adc_values_t v;
+adc_read_raw(&v);
 
-    // Konverter joystick Y
+if (v.joystick_y >= center_y) {
+    int16_t denom = (int16_t)(248 - center_y);
+if (denom < 1) denom = 1;
+    pos->joystick_y = ((int16_t)(v.joystick_y - center_y) * 100) / denom;
+} else {
+int16_t denom = (int16_t)(center_y - 67);
+if (denom < 1) denom = 1;
+pos->joystick_y = -((int16_t)(center_y - v.joystick_y) * 100) / denom;
+}
 
-    if (values.joystick_y >= center_y) {  // positiv retning
-        pos->joystick_y = ((int16_t)(values.joystick_y - center_y) * 100) / (248 - center_y);
-    } else {  // negativ retning
-        pos->joystick_y = -((int16_t)(center_y - values.joystick_y) * 100) / (center_y - 67);
-    }
+if (v.joystick_x >= center_x) {
+int16_t denom = (int16_t)(245 - center_x);
+if (denom < 1) denom = 1;
+pos->joystick_x = ((int16_t)(v.joystick_x - center_x) * 100) / denom;
+} else {
+int16_t denom = (int16_t)(center_x - 71);
+if (denom < 1) denom = 1;
+pos->joystick_x = -((int16_t)(center_x - v.joystick_x) * 100) / denom;
+}
 
-    // Konverter joy
-    adc_values_t data;
-    if (values.joystick_x >= center_x) {  // pos->tiv retning
-        pos->joystick_x = ((int16_t)(values.joystick_x - center_x) * 100) / (245 - center_x);
-    } else {  // negativ retning
-        pos->joystick_x = -((int16_t)(center_x - values.joystick_x) * 100) / (center_x - 71);
-    }
+pos->slider_x = v.slider_x;
+pos->slider_y = v.slider_y;
 
-    pos->slider_x = values.slider_x;
-    pos->slider_y = values.slider_y;
-
-    //printf("POS: %d",pos->joystick_x);
-    //printf("POS: %d",pos->joystick_y);
- 
+if (pos->joystick_x > 100) pos->joystick_x = 100;
+if (pos->joystick_x < -100) pos->joystick_x = -100;
+if (pos->joystick_y > 100) pos->joystick_y = 100;
+if (pos->joystick_y < -100) pos->joystick_y = -100;
 }
 
 volatile joy_direction get_joystickdirection(adc_values_t *pos, int16_t center_x, int16_t center_y) {
 
-    if (pos->joystick_y > 50) {
-        printf("up");
-    return UP;
-    }
-    else if (pos->joystick_y < -50) {
-        
-        return DOWN;
-    }
-    else if (pos->joystick_x > 50) {
-        return RIGHT;
-    }
-    else if (pos->joystick_x <-50) {
-        return LEFT;
-    }
-    else {
-        return NEUTRAL;
-    }
+(void)center_x; (void)center_y;
+const int8_t DEADZONE = 15;
+
+if (pos->joystick_y > 50) {
+ printf("UP");
+return UP;}
+else if (pos->joystick_y < -50) { printf("down");return DOWN;}
+
+else if (pos->joystick_x > 50) { printf("right");return RIGHT;}
+else if (pos->joystick_x < -50) { printf("left");return LEFT;}
+
+if (pos->joystick_y > DEADZONE) return UP;
+if (pos->joystick_y < -DEADZONE) return DOWN;
+if (pos->joystick_x > DEADZONE) return RIGHT;
+if (pos->joystick_x < -DEADZONE) return LEFT;
+
+return NEUTRAL;
+}
+
+
+
+char get_joystickdirection1(adc_values_t *pos, int16_t center_x, int16_t center_y) {
+
+(void)center_x; (void)center_y;
+const int8_t DEADZONE = 15;
+
+if (pos->joystick_y > 50) {
+ 
+return '0x03';}
+else if (pos->joystick_y < -50) { return '0x04';}
+
+else if (pos->joystick_x > 50) { return '0x02';}
+else if (pos->joystick_x < -50) { return '0x01';}
+
+
+return '0x00';
+
 }
 
 
@@ -138,47 +163,22 @@ void send_joystick_pos(adc_values_t *cal_data){
     //#define MODE_NORMAL   0x00
     //mcp2515_set_mode(0x00); //normal mode (setter cnf-reg inni her)
 
-        uint8_t joy_data = get_data_from_joystick(&cal_data);
+adc_values_t pos;
+    position(cal_data->joystick_x,cal_data->joystick_y,&pos);
+    //printf("JOY X=%d Y=%d ", (int)pos.joystick_x, (int)pos.joystick_y);
+    _delay_ms(10);
+    char joy_data = get_joystickdirection1(&pos, cal_data->joystick_x, cal_data->joystick_y);
 
-        can_message message_to_node2 = {
+
+    can_message message_to_node2 = {
             .id = 0x43,
             .data_length = 1,
             .data[0] = joy_data
         };
     can_send(&message_to_node2,0);
-    //printf("JOY: %c \n\r", message_to_node2.data[0]);
+     printf("JOY: %c \n\r",message_to_node2.data[0]);
     _delay_ms(100);
   
 }
 //joy_direction get_joystickdirection(adc_values_t pos, int16_t center_x, int16_t center_y)
-
-uint8_t get_data_from_joystick(adc_values_t *cal_data){
-    adc_values_t pos;
-    position(cal_data->joystick_x,cal_data->joystick_y,&pos);
-    _delay_ms(10);
-    joy_direction dir= get_joystickdirection(&pos, cal_data->joystick_x, cal_data->joystick_y);
-    switch(dir){
-        case LEFT: return 0x01;
-        case RIGHT: return 0x02;
-        case UP: return 0x03;
-        case DOWN: return 0x04;
-        default: return 0x00;
-    };
-    
-}
-//position(int16_t center_x, int16_t center_y) 
-
-
-void send_pos(adc_values_t *pos){
-    uint8_t x = pos->joystick_x;
-    uint8_t y = pos->joystick_y;
-    printf("x: %d\n\r",x);
-    printf("y: %d\n\r",y);
-        can_message message_to_node2 = {
-            0x43,
-            2,
-            {x,y}
-        };
-    can_send(&message_to_node2,0);
-}
 

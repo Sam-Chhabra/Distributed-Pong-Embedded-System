@@ -1,8 +1,8 @@
 
 #include "../sam/sam3x/include/sam.h"
-#include "can.h"
-#include <stdio.h>
 
+#include <stdio.h>
+#include "can.h"
 void can_printmsg(CanMsg m){
     printf("CanMsg(id:%d, length:%d, data:{", m.id, m.length);
     if(m.length){

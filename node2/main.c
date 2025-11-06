@@ -10,6 +10,7 @@
 #include "startercode/uart.h"
 #include "../can_node_2/can_controller.h"
 #include "../can_node_2/can_interrupt.h"
+#include "startercode/PWM.h"
 
 
 //#include "../node1/mcp2515.h"
@@ -47,6 +48,11 @@
 #define SJW   0
 #define smp 0
 
+void delay_ms(uint16_t tid){
+    for (int i=0;i<tid*100;i++){
+        __asm__("nop");
+    }
+}
 
 void can_printmsg1(CAN_MESSAGE *m){
     printf("CanMsg(id:%d, length:%d, data:{", m->id, m->data_length);
@@ -61,94 +67,38 @@ void UART_verification() {
     uart_init(F_CPU, BAUD_RATE);
     printf("\n\rUART is ready on Node 2!\n\r");
 }
-int main()
-{
-SystemInit();
-UART_verification();
 
-
-WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
-
-//uint8_t BRP = 20;
-//uint8_t phaseseg2=4;
-//uint8_t phaseseg1 = 7;
-//uint8_t propag = 1;
-//uint8_t SJW = 2;
-//uint8_t smp=0;
-
-//PMC ->PMC_PCER0 = (1 << ID_PIOB); //starter klokka
-
-
-uint32_t can_br = ((smp<<24) | (BRP<<16) | (SJW<<12) | (propag<<8) | (phaseseg1<<4) | phaseseg2);
-//uint8_t rxInterrupt=1;
-can_init_def_tx_rx_mb(can_br);
-
-
-
-//#define txMailbox 0
-//#define rxMailbox 1
-//char can_sr = CAN0->CAN_SR; 
-CAN_MESSAGE message;
+void dag6_test(){
+        CAN_MESSAGE message;
 while(1){
-//time_spinFor(msecs(200));
-			//can_receive(&message, 2);
-            //printf("melding: %d\n", message.data[0]);
-            //can_receive(&message, 1);
-            //time_spinFor(msecs(200));
         if (!can_receive(&message, 0)){
-            //printf("melding: %d\n\r", message.data[0]);
             can_printmsg1(&message);
         }
-		
+    }
+}
 
-//msecs(200);
-//time_spinFor(2);
-}}
-
-/*__attribute__((packed)) struct CanInit {
-    union {
-        struct {
-            uint32_t phase2:4;  // Phase 2 segment
-            uint32_t propag:4;  // Propagation time segment
-            uint32_t phase1:4;  // Phase 1 segment
-            uint32_t sjw:4;     // Synchronization jump width
-            uint32_t brp:8;     // Baud rate prescaler
-            uint32_t smp:8;     // Sampling mode
-        };
-        uint32_t reg;
-    };
-};
-		if(can_sr & CAN_SR_MB1)  //Mailbox 1 event
-		{
-            can_receive(&message, 1);
-            printf("%d \n", message.data);
-		}
-        
-		else if(can_sr & CAN_SR_MB2) //Mailbox 2 event
-		{
-			can_receive(&message, 2);
-            printf("%d \n", message.data);
-		}
-*/
-
-/*WDT->WDT_MR = WDT_MR_WDDIS;      // Disable Watchdog
-
-PIOA->PIO_PER = PIO_PER_P1;      // Enable PIO control on PA1
-PIOA->PIO_OER = PIO_OER_P1;      // Configure PA1 as output
-
-// Test: Sett pin høy, vent litt, så lav
-PIOA->PIO_SODR = PIO_SODR_P1;    // Set Output Data Register – pin HIGH
-for (volatile int i = 0; i < 1000000; i++);  // enkel delay
-PIOA->PIO_CODR = PIO_CODR_P1;    // Clear Output Data Register – pin LOW
+void dag7_test(){
+    pwm_init();
+    pwm_set_duty_cycle(20);
+}
 
 
-    while (1)
-    {
-    
-            // Sett pin høy (servo puls)
-    PIOA->PIO_SODR = PIO_SODR_P1;
-    //delay_us(1500);   // 1.5 ms for midtposisjon
-    // Sett pin lav
-    PIOA->PIO_CODR = PIO_CODR_P1;
-    //delay_ms(18.5);   // Resten av 20 ms perioden
-    }*/
+
+int main()
+{
+    SystemInit();
+    UART_verification();
+    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
+    uint32_t can_br = ((smp<<24) | (BRP<<16) | (SJW<<12) | (propag<<8) | (phaseseg1<<4) | phaseseg2);
+    can_init_def_tx_rx_mb(can_br);
+    dag7_test();
+    CAN_MESSAGE message;
+    while(1){
+            if (!can_receive(&message, 0)){
+                duty(&message);
+                //delay_ms(100000);
+            }
+    }
+}
+
+

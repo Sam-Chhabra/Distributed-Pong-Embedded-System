@@ -44,14 +44,15 @@ int main(){
     adc_values_t cal_data;
     pos_calibrate(&cal_data); //kalibrerer
     adc_values_t pos;
+
     while(1){
-        position(cal_data.joystick_x, cal_data.joystick_y, &pos);
         //can_send(&message,0); // Sender melding
         //printf("%d",message.data[0]);
         //can_send1(&message,1);
-        _delay_ms(20);
-        send_pos(&pos);
-        _delay_ms(100);
+
+        send_joystick_pos(&cal_data);
+        //can_send(&msg,0);
+   
     }
         
 	return 0;

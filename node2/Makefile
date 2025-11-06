@@ -11,6 +11,7 @@ SOURCE_FILES = \
 	startercode/uart.c \
 	startercode/can.c \
 	startercode/time.c \
+	startercode/PWM.c \
 	can_node_2/can_controller.c \
 	can_node_2/can_interrupt.c
 #	filenameN.c
