@@ -50,7 +50,7 @@ int main(){
         //printf("%d",message.data[0]);
         //can_send1(&message,1);
 
-        send_joystick_pos(&cal_data);
+        send_joystick_pos_ext(&cal_data);
         //can_send(&msg,0);
    
     }

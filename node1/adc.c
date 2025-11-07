@@ -182,3 +182,23 @@ adc_values_t pos;
 }
 //joy_direction get_joystickdirection(adc_values_t pos, int16_t center_x, int16_t center_y)
 
+void send_joystick_pos_ext(adc_values_t *cal_data){
+    //adc_values_t cal_data = pos_calibrate(); //kalibrerer
+    //#define MODE_NORMAL   0x00
+    //mcp2515_set_mode(0x00); //normal mode (setter cnf-reg inni her)
+
+    adc_values_t pos;
+    position(cal_data->joystick_x,cal_data->joystick_y,&pos);
+    //printf("JOY X=%d Y=%d ", (int)pos.joystick_x, (int)pos.joystick_y);
+    _delay_ms(10);
+
+    can_message message_to_node2 = {
+            .id = 0x43,
+            .data_length = 1,
+            .data[0] = pos.joystick_x+100
+        };
+    can_send(&message_to_node2,0);
+    //printf("DATA node1: %d\n\r", message_to_node2.data[0]);
+
+  
+}

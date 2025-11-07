@@ -95,7 +95,8 @@ int main()
     CAN_MESSAGE message;
     while(1){
             if (!can_receive(&message, 0)){
-                duty(&message);
+                //printf("DATA  node2: %d\n\r", message.data[0]);
+                pwm_duty(&message);
                 //delay_ms(100000);
             }
     }

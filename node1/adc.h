@@ -30,3 +30,5 @@ char get_joystickdirection1(adc_values_t *pos, int16_t center_x, int16_t center_
 void pos_calibrate(adc_values_t *data);
 
 void send_joystick_pos(adc_values_t *cal_data);
+
+void send_joystick_pos_ext(adc_values_t *cal_data);
