@@ -11,11 +11,12 @@
 #include "../can_node_2/can_controller.h"
 #include "../can_node_2/can_interrupt.h"
 #include "startercode/PWM.h"
-
+#include "startercode/adc.h"
+#include "startercode/ir.h"
 
 //#include "../node1/mcp2515.h"
 //#include <util/delay.h>
-//picocom -b 9600 /dev/ttyACM1
+//picocom -b 9600 /dev/ttyACM0
 
 
 /*
@@ -78,13 +79,45 @@ while(1){
 }
 
 void dag7_test(){
-    pwm_init();
-    pwm_set_duty_cycle(20);
+    servo_init();
+    adc_init();
+    motor_init();
 }
 
 
 
+
+//ir_count_score(uint8_t *score)
 int main()
+{
+    SystemInit();
+    UART_verification();
+    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
+    uint32_t can_br = ((smp<<24) | (BRP<<16) | (SJW<<12) | (propag<<8) | (phaseseg1<<4) | phaseseg2);
+    can_init_def_tx_rx_mb(can_br);
+    dag7_test();
+    CAN_MESSAGE message;
+    uint8_t score=0;
+    Timer time;
+    time.active=1;
+    time.end_time=time_now();
+
+    while(1){
+        //ir_count_score(&score, &time);
+        //printf("Motorposisjon: %ld\n\r", (long)motor_read());
+        if (!can_receive(&message, 0)){
+                //printf("DATAx  node2: %d\n\r", message.data[0]);
+                //printf("DATAy  node2: %d\n\r", message.data[1]);
+                pwm_servo_pos(&message);
+                pwm_motor_pos(&message);
+                
+                
+            }
+
+    }
+}
+
+/*int main()
 {
     SystemInit();
     UART_verification();
@@ -101,5 +134,5 @@ int main()
             }
     }
 }
-
+*/
 

@@ -2,6 +2,15 @@
 
 #include <stdint.h>
 
+typedef struct timer_t
+{
+    uint64_t end_time;
+    uint8_t active;
+} Timer;
+
+void start_timer(Timer *time, uint64_t duration);
+
+uint8_t end_timer(Timer *time);
 
 
 // Time is a count of the number of ticks, and is represented as a uint64_t
@@ -23,6 +32,10 @@ float totalMsecs(uint64_t t);
 float totalSeconds(uint64_t t);
 float totalMinutes(uint64_t t);
 float totalHours(uint64_t t);
+
+
+
+
 
 // Spins the CPU (delays) for a duration
 // Example:

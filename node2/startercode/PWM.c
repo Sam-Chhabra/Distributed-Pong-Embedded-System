@@ -8,7 +8,7 @@
 //velger metode2
 //REG_PWM_CPDRUPDx setter periode verdi
 
-void pwm_init(){  
+void servo_init(){  
     PMC->PMC_PCER0 |= (1 << 12);   // PIOB controller b, trenger den til pb13 hvor servoen ligger 
     PMC->PMC_PCER1 |= PMC_PCER1_PID36;   // PWM controller
 
@@ -37,8 +37,67 @@ void pwm_init(){
     PWM->PWM_ENA = PWM_ENA_CHID1;   // aktverer klokken på kanal 0
 
 }
-/*
-void pwm_init_motor(){ //  LAB DAG 8
+
+/*void motor_init(){
+    PIOC->PIO_ABSR |= PIO_PC25 | PIO_PC26;
+    PIOC->PIO_PDR = PIO_PC25 | PIO_PC26;
+
+    PMC->PMC_PCER1 |= 1 << (ID_TC6- 32); //enable pwm peripheral clock
+    //PMC->PMC_PCER1 |= 1 << (ID_TC7- 32); //enable pwm peripheral clock
+    //PMC->PMC_PCER1 |= 1 << (ID_TC8- 32); //enable pwm peripheral clock
+    
+    TC2->TC_BMR = TC_BMR_QDEN | TC_BMR_POSEN | TC_BMR_EDGPHA; 
+    TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_XC0 | TC_CMR_ETRGEDG_RISING | TC_CMR_ABETRG;
+    TC2->TC_CHANNEL[0].TC_CCR |= TC_CCR_CLKEN;
+    TC2->TC_BCR = TC_BCR_SYNC;
+
+}*/
+
+void motor_init(){
+    //pb12 enable/pwm
+    PIOB->PIO_PDR |= PIO_PDR_P12; // slår av gpio slik at pinnen kan brukes av pwm
+    PIOB->PIO_ABSR |= PIO_ABSR_P12;
+    //pioc
+    PIOC->PIO_PDR |= PIO_PDR_P13;
+    PIOC->PIO_ABSR |= PIO_ABSR_P13;
+    //pc23 phase/dir
+PIOC->PIO_PER |= PIO_PC23;  // Enable PIO control
+PIOC->PIO_OER |= PIO_PC23;  // Sett PC23 som output
+    //25 and 26 ChA ChB , quad a and quad b
+    PIOC->PIO_ABSR |= PIO_PC25 | PIO_PC26;
+    PIOC->PIO_PDR |= PIO_PC25 | PIO_PC26;
+    
+    PMC->PMC_PCER1 |= 1 << (ID_TC6- 32);
+    PIOC->PIO_SODR|=PIO_PB23; //clear
+    PWM->PWM_CH_NUM[0].PWM_CMR = PWM_CMR_CPRE_CLKA | PWM_CMR_CPOL; // channel 0 er motor, skal bruke klokke A (CLKA)
+    
+
+    REG_TC2_BMR |= TC_BMR_QDEN | TC_BMR_POSEN;  //set quadrature decoder mde, position measurment on channel 0 and 1
+
+    TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_XC0 ;//set xc0 as the selected clock,
+    TC2->TC_CHANNEL[0].TC_CCR |= TC_CCR_CLKEN; //enable clock
+    
+    TC2->TC_BCR = TC_BCR_SYNC;
+
+    //PMC->PMC_PCER0 |= PMC_PCER0_PID29; //tc2 har id 29
+
+    // Set period and duty cycle
+    PWM->PWM_CH_NUM[0].PWM_CPRD = PWM_CPRD_CPRD(20000);  // setter CPRD som gir riktig periode, CPRD*DICA/MCK skal bli perioden på 20 ms
+    PWM->PWM_CH_NUM[0].PWM_CDTY = PWM_CDTY_CDTY(0);   // setter start duty cycle på channel 0, 1.5 ms 
+
+    // Activate channel
+    PWM->PWM_ENA = PWM_ENA_CHID0;   // aktverer klokken på kanal 0
+
+}
+
+//uint16_t data= ADC->ADC_CDR[2]; //ad2
+
+volatile int32_t motor_read(){
+    //uint32_t val = REG_TC0_CV0;
+    //return val;
+    return (volatile int32_t) TC2->TC_CHANNEL[0].TC_CV; 
+}
+/*void pwm_init_motor(){ //  LAB DAG 8
     pwm_init_servo();
     PMC->PMC_PCER0 |= PMC_PCER0_PID12;   // paralell io controller b
     PMC->PMC_PCER1 |= PMC_PCER1_PID36;   // PWM controller
@@ -47,16 +106,17 @@ void pwm_init_motor(){ //  LAB DAG 8
     PIOB->PIO_PDR |= PIO_PDR_P12;
     PIOB->PIO_ABSR |= PIO_PB12B_PWMH0;   // Peripheral B for PB12
 
-    PWM->PWM_CH_NUM[1].PWM_CMR = PWM_CMR_CPRE_CLKA | PWM_CMR_CPOL;
+    PWM->PWM_CH_NUM[0].PWM_CMR = PWM_CMR_CPRE_CLKA | PWM_CMR_CPOL;
 
     // Set period and duty cycle
-    PWM->PWM_CH_NUM[1].PWM_CPRD = PWM_CPRD_CPRD(50);     // 50 µs channel period
-    PWM->PWM_CH_NUM[1].PWM_CDTY = PWM_CDTY_CDTY(0);      // 0 ms channel duty cycle → Motor stopped
+    PWM->PWM_CH_NUM[0].PWM_CPRD = PWM_CPRD_CPRD(50);     // 50 µs channel period
+    PWM->PWM_CH_NUM[0].PWM_CDTY = PWM_CDTY_CDTY(0);      // 0 ms channel duty cycle → Motor stopped
 
     // Activate channel
-    PWM->PWM_ENA = PWM_ENA_CHID1;
-}
-*/
+    PWM->PWM_ENA = PWM_ENA_CHID0;
+}*/
+
+
 void pwm_set_duty_cycle(uint16_t duty_cycle){
     if (duty_cycle < 1000){
         duty_cycle = 1000;
@@ -74,20 +134,50 @@ void pwm_set_duty_cycle(uint16_t duty_cycle){
     //printf("DUTY CYCLE: %u\n\r", duty_cycle);
 }
 
-void pwm_duty(CAN_MESSAGE *msg){ //kall noe annet- omgjør output fra can til duty cycle
-
-    uint16_t duty=msg->data[0]*6 + 900; //0-200-> 900-2100
-    if (duty>2100){
-        duty=2100;
+void pwm_motor_pos(CAN_MESSAGE *msg){ //kall noe annet- omgjør output fra can til duty cycle
+    //direction
+    uint8_t dir;
+    if (msg->data[0]>110){
+        PIOC->PIO_SODR|=PIO_PC23; //set
     }
-    else if (duty < 900){
-        duty=900;
+    else if(msg->data[0]<90){
+        PIOC->PIO_CODR|=PIO_PC23; //clear
     }
 
-    pwm_set_duty_cycle(duty);
-    printf("duty: %u\n\r", duty);
+    int16_t duty=((msg->data[0])-100)*100; 
+//speed
+    if (duty<0){
+        duty=duty*(-1);
+    }
+
+    REG_PWM_CDTYUPD0 = duty; // Oppdaterer duty cycle til channel 0
+    PWM->PWM_SCUC = 1; //oppdatere duty cycle
+
+    printf("duty_x: %u\n\r", duty);
     //duty cycle: et sted mellom 900 og 2100
 
 }
 
 
+void pwm_servo_pos(CAN_MESSAGE *msg){
+    uint16_t duty=msg->data[1]*6 + 900; //0-200-> 900-2100
+
+    if (duty < 1000){
+        duty = 1000;
+    }
+    else if (duty >  2000){
+        duty = 2000;
+    }
+    REG_PWM_CDTYUPD1 = duty; // Oppdaterer duty cycle til channel 1
+    PWM->PWM_SCUC = 1; //oppdatere duty cycle
+
+    printf("duty_y: %u\n\r", duty);
+    //duty cycle: et sted mellom 900 og 2100
+
+}
+
+void PI_regulator(){
+    uint16_t r= //joystick
+    uint16_t x = //måling fra motor
+    
+}

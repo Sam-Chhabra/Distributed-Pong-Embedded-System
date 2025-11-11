@@ -194,11 +194,11 @@ void send_joystick_pos_ext(adc_values_t *cal_data){
 
     can_message message_to_node2 = {
             .id = 0x43,
-            .data_length = 1,
-            .data[0] = pos.joystick_x+100
+            .data_length = 2,
+            .data = {pos.joystick_x+100, pos.joystick_y+100}
         };
     can_send(&message_to_node2,0);
-    //printf("DATA node1: %d\n\r", message_to_node2.data[0]);
+    printf("DATA node1: %d\n\r", message_to_node2.data[0]);
+    printf("DATA node1: %d\n\r", message_to_node2.data[1]);
 
-  
 }

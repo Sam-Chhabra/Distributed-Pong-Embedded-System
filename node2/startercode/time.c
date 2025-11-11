@@ -4,6 +4,7 @@
 #include "time.h"
 
 
+
 uint64_t calib;
 static uint64_t now = 0;
     
@@ -105,3 +106,18 @@ uint64_t ticksPerMs(void){
     return calib;
 }
 
+
+
+void start_timer(Timer *time, uint64_t duration){
+    time->end_time=time_now()+duration;
+    time->active=1;
+}
+
+uint8_t end_timer(Timer *time){ //0: kan ikke telle poeng, 1 kan telle poeng
+    if ((time_now() >= time->end_time) && time->active){
+        time->active=0;
+        return 1;
+    }
+    
+    return 0;
+}

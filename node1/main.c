@@ -46,10 +46,10 @@ int main(){
     adc_values_t pos;
 
     while(1){
+        //printf("hei");
         //can_send(&message,0); // Sender melding
         //printf("%d",message.data[0]);
         //can_send1(&message,1);
-
         send_joystick_pos_ext(&cal_data);
         //can_send(&msg,0);
    
