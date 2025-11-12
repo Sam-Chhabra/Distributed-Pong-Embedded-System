@@ -107,7 +107,6 @@ uint64_t ticksPerMs(void){
 }
 
 
-
 void start_timer(Timer *time, uint64_t duration){
     time->end_time=time_now()+duration;
     time->active=1;

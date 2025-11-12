@@ -74,4 +74,4 @@ build/PWM.o: startercode/PWM.c startercode/../sam/sam3x/include/sam.h \
  startercode/../sam/sam3x/include/instance/instance_gpbr.h \
  startercode/../sam/sam3x/include/pio/pio_sam3x8e.h \
  startercode/../sam/sam3x/include/sam3x8e.h startercode/PWM.h \
- startercode/../can_node_2/can_controller.h
+ startercode/../can_node_2/can_controller.h startercode/time.h

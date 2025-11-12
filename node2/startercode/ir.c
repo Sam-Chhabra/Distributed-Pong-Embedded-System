@@ -16,13 +16,10 @@ uint8_t ir_blocked(){ //Create a function that is able to count the score. This 
 }
 
 void ir_count_score(uint8_t *score, Timer *time){ //flag 0 betyr at den ikke har scora på en stund
-
     if (ir_blocked() && (end_timer(time))){
-
         (*score)++;
         start_timer(time, seconds(2));
         //delay_ms(1000000);
         printf("score: %u\n\r",(unsigned int)*score);
-    }
-    
+    }   
 }

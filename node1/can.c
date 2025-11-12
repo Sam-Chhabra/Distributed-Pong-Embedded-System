@@ -17,7 +17,6 @@ static inline uint16_t regs_to_id(uint8_t sidh, uint8_t sidl){
     return ((uint16_t)(sidh << 3)) | ((sidl >> 5) & 0x07);
 }
 
-
 static inline uint8_t MCP_get_interrupt_flags(void){
     return mcp2515_read(MCP_CANINTF);
 }
@@ -80,15 +79,8 @@ void CAN_init_loopback(void)
 
 
 void can_normal_init(void){
-
-    //while (mcp2515_init());
     mcp2515_init();
     _delay_ms(100);
-    // set can timing
-    //uint8_t CNF1 = (SJW << 6)|(BRP<<0);
-    //uint8_t CNF2 = (smp<<6)|(phaseseg1<<3)|(propag<<0);
-    //uint8_t CNF3 = (phaseseg2 << 0);
-
     uint8_t CNF1 = 0x43;
     uint8_t CNF2 = 0xb5;
     uint8_t CNF3 = 0x01;
@@ -96,44 +88,9 @@ void can_normal_init(void){
     mcp2515_write(MCP_CNF3, CNF3);
     mcp2515_write(MCP_CNF2, CNF2);
     mcp2515_write(MCP_CNF1, CNF1);
-    //printf("cnf3: %d %d ",mcp2515_read(MCP_CNF3), CNF3);
-//printf("cnf2: %d %d",mcp2515_read(MCP_CNF2), CNF2);
-//printf("cnf1: %d %d ",mcp2515_read(MCP_CNF1), CNF1); 
-   char interrupt_mask = 0b00111111;
-    mcp2515_write(MCP_CANINTE, interrupt_mask);
-
-    //mcp2515_bit_modify(MCP_CANCTRL, 0x08, 0x08);
-
-mcp2515_set_mode(MODE_NORMAL);
-
-   /*    // Enable interrupt
     char interrupt_mask = 0b00111111;
     mcp2515_write(MCP_CANINTE, interrupt_mask);
-
-    //set baudrate
-    char cnf1 = mcp2515_read(MCP_CNF1);
-
-    //set mode PRØV VÅR SET MODE FUNKSJON
-    char canctrl = 0;
-    canctrl &= ~(MODE_MASK);
-
-    canctrl |= MODE_NORMAL;
-    canctrl |= (1<<2);
-
-    mcp2515_write(MCP_CANCTRL, canctrl);
-
-    //check if mode is correct
-    uint8_t value = mcp2515_read(MCP_CANSTAT);
-    if ((value & MODE_MASK)!= MODE_NORMAL) {
-        printf("mcp is not correct");
-    }
-
-    // clear interrupts
-    mcp2515_write(MCP_CANINTF, 0x00);
-
-    //mcp2515_set_mode(MODE_NORMAL);
-
-    //CAN_init_loopback();*/
+    mcp2515_set_mode(MODE_NORMAL);
 
 }
 
@@ -149,17 +106,8 @@ void CAN_int_init_PD2(void)
 
 
 
-//i oppgaven var det buffer 0 vi ville sende til
 void can_send(const can_message* msg, uint8_t buffer_n)
 {
-
-//uint8_t ctrl = mcp2515_read(MCP_TXB0CTRL);  // les registeret
-//if (ctrl & 0x08) {                          // test TXREQ-bitten (bit 3)
- //   printf("TXB0 busy\n");
-   // return 1;   // eller 0 hvis du vil “EAGAIN”
-//}
-
-    //printf("CAN bus is not busy");
     uint8_t offset = 0x10 * buffer_n;
     //send id 
     mcp2515_write(MCP_TXB0SIDH+offset, (uint8_t)(msg->id >> 3)); //upper 8 bits
@@ -176,33 +124,6 @@ void can_send(const can_message* msg, uint8_t buffer_n)
     }
     mcp2515_request_to_send(buffer_n);   
 }
-
-void can_send1(const can_message* msg, uint8_t buffer_n)
-{
- //   if (MCP2515_read(MCP_TXB0CTRL + CAN_BUFFER_SIZE*buffer)&0x08){
- //   printf("CAN bus is busy");
- //   return 1;
-  //  }
-    uint8_t offset = 0x10 * buffer_n;
-    //send id 
-    mcp2515_write(MCP_TXB1SIDH+offset, (uint8_t)(msg->id >> 3)); //upper 8 bits
-    mcp2515_write(MCP_TXB1SIDL+offset, (uint8_t)(msg->id & 0x07)<<5);
-
-    //send data length
-    uint8_t length = msg->data_length & 0xF; //can only send 8 bytes
-    mcp2515_write(MCP_TXB1DLC + offset, length);
-
-    //write data 
-    for (uint8_t i=0;i<length; i++){
-        if (i>= 8) break;
-        mcp2515_write(MCP_TXB1D0 + offset + i, msg->data[i]);
-    }
-    mcp2515_request_to_send(buffer_n);
-
-   
-}
-
-
 
 void can_read(can_message *message, uint8_t rx_buffer_n){
     printf("trying to read buffer RD %D \n", rx_buffer_n);
@@ -229,8 +150,6 @@ void can_read(can_message *message, uint8_t rx_buffer_n){
 
     message->data[message->data_length] = '\0'; // ???
     spi_deselectSlave();
-    UART_transmit("Received message: \n");
-    printf("ID: %d \n Length: %d \n Data: %d \n", message->id, message->data_length, message->data);
 }
 
 
@@ -253,7 +172,6 @@ static void can_read_rxb0(can_message* out)
 
 
 ISR(INT0_vect){ can_irq_flag = 1; }
-
 
 void CAN_service(void)
 {
@@ -283,11 +201,6 @@ uint8_t CAN_try_get(can_message* out){
     rx_available = 0;
     return 1;
 }
-
-
-/*mcp2515_write(MCP_CNF1,0x01);
-mcp2515_write(MCP_CNF2,0x89);
-mcp2515_write(MCP_CNF3,0x02);*/
 
 void can_reset(){
     spi_selectSlave(MCP_SS);

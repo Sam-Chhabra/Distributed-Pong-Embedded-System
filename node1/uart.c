@@ -10,7 +10,6 @@ void UART_init(unsigned int ubrr)
     UCSR0B = (1<<RXEN0) | (1<<TXEN0);
     // Set frame format: 8 data bits, 2 stop bit, no parity
     UCSR0C = (1 << URSEL0) | (1<<USBS0) | (3<<UCSZ00);
-    //fdevopen(USART_Transmit, USART_Receive);
 }
 
 int UART_transmit(char data, FILE *file)
@@ -22,20 +21,10 @@ int UART_transmit(char data, FILE *file)
     ;
     
     // Put data into the buffer, sends the data
-    
     UDR0 = data; 
     return 0;
 }
 
-/*UBRR
-uint8_t uart_TryTransmit(unsigned chat data){
-  if((UCSRA & (1 << UDRE))){ //when its ready, its emty
-    UDR = data;
-    return 1;
-  }
-  return 0;
-}
-*/
 
 int UART_receive(FILE * file)
 {
@@ -47,25 +36,3 @@ int UART_receive(FILE * file)
     // Get and return the received data from the buffer
     return UDR0;
 }
-
-/*
-int UART_putchar(char c, FILE *stream)
-{
-  if (c == '\n'){
-    UART_transmit('\r');
-  }
-  UART_transmit((uint8_t)c);
-  return 0;
-}
-
-int UART_getchar(void){
-  return UART_receive();
-}
-
-void UART_test_receive_transmit(){
-    while(1){
-        unsigned char data = UART_receive();
-        UART_transmit(data);
-    }
-}
-*/

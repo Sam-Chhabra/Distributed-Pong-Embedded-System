@@ -87,15 +87,23 @@ PIOC->PIO_OER |= PIO_PC23;  // Sett PC23 som output
 
     // Activate channel
     PWM->PWM_ENA = PWM_ENA_CHID0;   // aktverer klokken på kanal 0
-
+    motor_calibrate();
 }
 
 //uint16_t data= ADC->ADC_CDR[2]; //ad2
 
 volatile int32_t motor_read(){
     //uint32_t val = REG_TC0_CV0;
-    //return val;
-    return (volatile int32_t) TC2->TC_CHANNEL[0].TC_CV; 
+    //return val; 100-(motor_read()/14.05);
+    uint32_t val =  TC2->TC_CHANNEL[0].TC_CV;
+    return val ; 
+}
+
+volatile int32_t motor_read1(uint32_t min){
+    //uint32_t val = REG_TC0_CV0;
+    //return val; 100-(motor_read()/14.05);
+    uint32_t val = min + TC2->TC_CHANNEL[0].TC_CV;
+    return 100-(val/14.05) ; 
 }
 /*void pwm_init_motor(){ //  LAB DAG 8
     pwm_init_servo();
@@ -134,7 +142,7 @@ void pwm_set_duty_cycle(uint16_t duty_cycle){
     //printf("DUTY CYCLE: %u\n\r", duty_cycle);
 }
 
-void pwm_motor_pos(CAN_MESSAGE *msg){ //kall noe annet- omgjør output fra can til duty cycle
+uint16_t pwm_motor_pos(CAN_MESSAGE *msg){ //kall noe annet- omgjør output fra can til duty cycle
     //direction
     uint8_t dir;
     if (msg->data[0]>110){
@@ -144,16 +152,17 @@ void pwm_motor_pos(CAN_MESSAGE *msg){ //kall noe annet- omgjør output fra can t
         PIOC->PIO_CODR|=PIO_PC23; //clear
     }
 
-    int16_t duty=((msg->data[0])-100)*100; 
+    int16_t speed=((msg->data[0])-100)*100; 
 //speed
-    if (duty<0){
-        duty=duty*(-1);
+    if (speed<0){
+        speed=speed*(-1);
     }
 
-    REG_PWM_CDTYUPD0 = duty; // Oppdaterer duty cycle til channel 0
-    PWM->PWM_SCUC = 1; //oppdatere duty cycle
+    REG_PWM_CDTYUPD0 = speed; // Oppdaterer speed cycle til channel 0
+    PWM->PWM_SCUC = 1; //oppdatere speed cycle
 
-    printf("duty_x: %u\n\r", duty);
+    return speed;
+    //printf("duty_x: %u\n\r", duty);
     //duty cycle: et sted mellom 900 og 2100
 
 }
@@ -171,13 +180,87 @@ void pwm_servo_pos(CAN_MESSAGE *msg){
     REG_PWM_CDTYUPD1 = duty; // Oppdaterer duty cycle til channel 1
     PWM->PWM_SCUC = 1; //oppdatere duty cycle
 
-    printf("duty_y: %u\n\r", duty);
+    //printf("duty_y: %u\n\r", duty);
     //duty cycle: et sted mellom 900 og 2100
 
 }
 
-void PI_regulator(){
-    uint16_t r= //joystick
-    uint16_t x = //måling fra motor
+void PI_regulator(CAN_MESSAGE *msg, Timer *timer){
+    static double sum;   // static = husker verdien mellom kall
+    if (end_timer(timer)){
+        double kp=1;
+        double ki=1;
+        double T=1/1000; //1 sampling per millisek
+        double ref= (msg->data[0]-100); //joystick -100->100
+        double y = 100-(motor_read()/14.05);//måling fra motor 1->2812, -100 til 100
+        if (y<-100){
+            y = -100;
+        }
+        else if (y>100){
+            y = 100;
+        }
+        
+        double error = ref-y;
+        sum+=(error*T);
+        double u = (kp*error) + (T*ki*sum);
+        
+        pwm_motor_speed(u);
+        printf("u: %lf\n\r", u);
+        start_timer(timer, msecs(1));
+    }
+
+}
+
+int16_t get_motor_r(CAN_MESSAGE *msg){
+    int16_t ref=((msg->data[0])); 
+    return ref;
+}
+
+void pwm_motor_speed(double u){ //kall noe annet- omgjør output fra can til duty cycle
+    //direction sjekke om den er over eller under 0
+    if (u<0){
+        PIOC->PIO_CODR|=PIO_PC23; // venstre
+        u = (-1)*u;  
+    }
+    else {
+        PIOC->PIO_SODR|=PIO_PC23;  // høyre
+    }
+
+    uint32_t duty = u*100;
+
+    // setter riktig pådrag    
+    REG_PWM_CDTYUPD0 = duty; // Oppdaterer duty cycle til channel 0
+    PWM->PWM_SCUC = 1; //oppdatere speed cycle
+
+
     
+
+}
+
+
+int32_t motor_calibrate(){
+    //går til høyre
+    PIOC->PIO_SODR|=PIO_PC23;
+    REG_PWM_CDTYUPD0 = 8000; 
+    Timer timer;
+    start_timer(&timer, seconds(2));
+    while(!end_timer(&timer)){}
+    REG_PWM_CDTYUPD0 = 0; 
+    int32_t min = motor_read(); //pos helt til høyre
+
+
+    //går til venstre
+    PIOC->PIO_CODR|=PIO_PC23; //clear
+    REG_PWM_CDTYUPD0 = 8000; 
+    start_timer(&timer, seconds(2));
+    while(!end_timer(&timer)){}
+    REG_PWM_CDTYUPD0 = 0; 
+    int32_t max = motor_read(); //pos helt til venstre
+    int32_t center = (max-min)/2;
+    printf("max: %d \n\n", max);
+    printf("min: %d \n\n", min);
+    printf("center: %d \n\n", center);
+    return min;
+    
+
 }

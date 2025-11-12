@@ -112,7 +112,3 @@ void can_send(const can_message* msg, uint8_t buffer_n);
 uint8_t CAN_try_get(can_message* out);
 
 void can_reset();
-
-//void can_receive(can_message* message, CAN_RX_BUFFER buffer);
-
-void can_send1(const can_message* msg, uint8_t buffer_n);

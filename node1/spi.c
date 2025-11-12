@@ -6,7 +6,6 @@ void spi_init(){
     //pb3 and pb4 as output, SS1, SS2
     DDRB |= (1 << DISP_SS2) | (1 << IO_SS1)|(1<< MCP_SS);
     PORTB |= (1 << DISP_SS2) | (1 << IO_SS1)|(1<< MCP_SS);
-
     //MOSI: PB5 output
     DDRB |= (1 << MOSI);
     //sck: pb7 output
@@ -23,38 +22,38 @@ void spi_init(){
 
 void spi_write(uint8_t byte){ //transmit
     SPDR = byte; //sender
-    while (! (SPSR & (1 << SPIF))); //venter på at sendinga er ferdig
-    //ingen returverdi?
+    while (! (SPSR & (1 << SPIF))); //wait until done
 }
 
 uint8_t spi_txrx(uint8_t data){
     SPDR = data;
-    while(!(SPSR & (1<<SPIF))); //venter til overføring er ferdig
-    return SPDR; //retunerer motatt byte
+    while(!(SPSR & (1<<SPIF))); //wait
+    return SPDR; //retunrn byte
 }
 
 uint8_t spi_read(){
-    //må sende dummy-byte for å generere klokkepuls og motta data fra slave
+    //send dummy byte to generate puls and to receive from slave
     SPDR = 0xFF;
-    while(!(SPSR & (1<<SPIF))); //venter til overføring er ferdig
-    return SPDR; //retunerer motatt byte
+    while(!(SPSR & (1<<SPIF))); //wait
+    return SPDR; 
 }
 
 void spi_transferBytes(const uint8_t *tx_data, uint8_t *rx_data, uint8_t len){ 
-    for (uint8_t i=0;i< len; i++){ //går gjennom alle bytes'a
-        uint8_t send_byte = tx_data ? tx_data[i] : 0xFF; //hvis null, sendes dummy-byte. if tx_data ikke er null, bruk tx[i], else: 0xff
+    for (uint8_t i=0;i< len; i++){ 
+        //if 0x00, send dummy byte, if not cero use tx_data[i] else send 0xff
+        uint8_t send_byte = tx_data ? tx_data[i] : 0xFF; 
         //send byten
         SPDR = send_byte;
-        while (!(SPSR & (1 << SPIF))); //venter på at sendinga er ferdig
-        if (rx_data){ //leser data- hvis vi skal sende skal vi ikke lese: rx_data=NULL (rx_data er der vi lagrer data)
-            rx_data[i]=SPDR;
+        while (!(SPSR & (1 << SPIF))); 
+        if (rx_data){ 
+            rx_data[i]=SPDR; //read data, if we want to send (not read): rx_data is null. 
         }
     }
 }
 
 void spi_selectSlave(uint8_t ss){
-    PORTB |= (1 << IO_SS1) | (1 << DISP_SS2) | (1 << MCP_SS); // | (1 << OTHER_SS); // setter alle høy fordi de er aktiv lav
-    PORTB &= ~(1 << ss); // setter lav på den vi skal velge
+    PORTB |= (1 << IO_SS1) | (1 << DISP_SS2) | (1 << MCP_SS); //active low-> set all high
+    PORTB &= ~(1 << ss); // low on the slave we want
 }
 
 void spi_deselectSlave(){

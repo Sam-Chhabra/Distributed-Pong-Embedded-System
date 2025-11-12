@@ -4,22 +4,15 @@
 
 uint8_t mcp2515_init(){
     mcp2515_reset();
-    //mcp2515_bit_modify(MCP_CANINTF,0xFF,0x00);
-    _delay_ms(100);
+    _delay_ms(10);
     uint8_t value;
-    //spi_init(); //?
-    //mcp2515_set_mode(MODE_CONFIG);
-    //_delay_ms(200);
     value = mcp2515_read(MCP_CANSTAT);
     _delay_ms(10);
     printf("CANSTAT after reset: 0x%02X\n", value);  // should be 0x8x
     if ((value & MODE_MASK) != MODE_CONFIG){
-        //UART_transmit("MCP2515 is NOT in configuration mode after reset!\n");
-        //printf("ikke i config mode");
         printf("MCP2515 is NOT in configuration mode after reset!\n");
         return 1;
     }
-    //
     mcp2515_write(MCP_RXB0CTRL, 0x60);
     mcp2515_write(MCP_RXB1CTRL,0X60);
     mcp2515_write(MCP_INT, 0x00); //clear interrupts
@@ -35,7 +28,6 @@ uint8_t mcp2515_read(uint8_t address){
     uint8_t data= spi_read();
     //higering cs pin
     PORTB |= (1 << MCP_SS);
-    //printf("%d read data\n",data);
     return data;
 }
 void mcp2515_write(uint8_t address, uint8_t data){
@@ -44,7 +36,6 @@ void mcp2515_write(uint8_t address, uint8_t data){
     spi_write(address);
     spi_write(data);
     PORTB |= (1 << MCP_SS);
-    //printf("%d write data: \n", data);
 }
 
 void mcp2515_request_to_send(int buffer_index){
@@ -87,11 +78,7 @@ uint8_t mcp2515_read_status(){
     return status;
 }
 
-
 void mcp2515_set_mode(uint8_t mode) {
-
 	mcp2515_bit_modify(MCP_CANCTRL, 0b11100000, mode);
-
-    //while ( (mcp2515_read(MCP_CANSTAT) & MODE_MASK) != mode){printf("her"); }
-    }
+}
 

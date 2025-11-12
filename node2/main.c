@@ -82,6 +82,8 @@ void dag7_test(){
     servo_init();
     adc_init();
     motor_init();
+    
+
 }
 
 
@@ -98,22 +100,36 @@ int main()
     dag7_test();
     CAN_MESSAGE message;
     uint8_t score=0;
-    Timer time;
-    time.active=1;
-    time.end_time=time_now();
-
+    Timer timeIR;
+    timeIR.active=1;
+    timeIR.end_time=time_now();
+    Timer timePI;
+    timePI.active=1;
+    timePI.end_time=time_now();
+    int32_t min=motor_calibrate();
     while(1){
-        //ir_count_score(&score, &time);
+        ir_count_score(&score, &timeIR);
         //printf("Motorposisjon: %ld\n\r", (long)motor_read());
         if (!can_receive(&message, 0)){
+            //printf("motorpos: %d\n\r",motor_read1(min));
+            
                 //printf("DATAx  node2: %d\n\r", message.data[0]);
                 //printf("DATAy  node2: %d\n\r", message.data[1]);
-                pwm_servo_pos(&message);
-                pwm_motor_pos(&message);
                 
+                //pwm_motor_pos(&message);
+                //printf("MOTORREAD: %u\n\r" , motor_read());
+                //PI_regulator(&message, &timePI);
+                //delay_ms(1000000);
+                 
+                if (message.data[2]==1){
+                    printf("knappen er trykket");
+                }
+                        PI_regulator(&message, &timePI);
+                        pwm_servo_pos(&message);
+                    
+                   
                 
             }
-
     }
 }
 

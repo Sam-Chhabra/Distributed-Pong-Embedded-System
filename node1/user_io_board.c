@@ -19,19 +19,15 @@ static inline uint8_t txrx(uint8_t v){ spi_write(v); return spi_read(); }
 static inline void read_raw(uint8_t *b0, uint8_t *b1, uint8_t *b2){
     spi_selectSlave(IO_SS1);
     spi_txrx(CMD_BUTTONS);
-    _delay_us(80);                 // >= 40 us (be generous)
-
-    *b0 = spi_txrx(0x00);              // Byte 0
-    _delay_us(10);                 // >= 2 us (be generous)
-    *b1 = spi_txrx(0x00);              // Byte 1
+    _delay_us(80);               
+    *b0 = spi_txrx(0x00);              
+    _delay_us(10);                 
+    *b1 = spi_txrx(0x00);              
     _delay_us(10);
-    *b2 = spi_txrx(0x00);              // Byte 2
+    *b2 = spi_txrx(0x00);              
     spi_deselectSlave();
 }
 
-void user_io_init(void){
-    // nothing extra; just ensure you never select OLED and IO at the same time
-}
 
 // Returns 0 on success
 int user_io_read_buttons(Buttons *btn){
