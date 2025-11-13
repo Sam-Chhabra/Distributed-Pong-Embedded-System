@@ -13,6 +13,7 @@
 #include "startercode/PWM.h"
 #include "startercode/adc.h"
 #include "startercode/ir.h"
+#include "startercode/solenoid.h"
 
 //#include "../node1/mcp2515.h"
 //#include <util/delay.h>
@@ -79,9 +80,11 @@ while(1){
 }
 
 void dag7_test(){
+    uart_init(F_CPU, BAUD_RATE);
     servo_init();
     adc_init();
     motor_init();
+    solenoid_init();
     
 
 }
@@ -93,7 +96,6 @@ void dag7_test(){
 int main()
 {
     SystemInit();
-    UART_verification();
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
     uint32_t can_br = ((smp<<24) | (BRP<<16) | (SJW<<12) | (propag<<8) | (phaseseg1<<4) | phaseseg2);
     can_init_def_tx_rx_mb(can_br);
@@ -106,7 +108,7 @@ int main()
     Timer timePI;
     timePI.active=1;
     timePI.end_time=time_now();
-    int32_t min=motor_calibrate();
+    //int32_t min=motor_calibrate();
     while(1){
         ir_count_score(&score, &timeIR);
         //printf("Motorposisjon: %ld\n\r", (long)motor_read());
@@ -121,15 +123,17 @@ int main()
                 //PI_regulator(&message, &timePI);
                 //delay_ms(1000000);
                  
-                if (message.data[2]==1){
-                    printf("knappen er trykket");
-                }
+            if (message.data[2]==1){
+                    
+                        solenoid_out();
+                        printf("knapp tryket");
+                        delay_ms(10000);
+                        solenoid_in();
+            }
                         PI_regulator(&message, &timePI);
                         pwm_servo_pos(&message);
-                    
-                   
-                
-            }
+        }  
+            
     }
 }
 

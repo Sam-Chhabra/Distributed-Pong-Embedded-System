@@ -199,13 +199,12 @@ void PI_regulator(CAN_MESSAGE *msg, Timer *timer){
         else if (y>100){
             y = 100;
         }
-        
         double error = ref-y;
         sum+=(error*T);
         double u = (kp*error) + (T*ki*sum);
         
         pwm_motor_speed(u);
-        printf("u: %lf\n\r", u);
+        //printf("u: %lf\n\r", u);
         start_timer(timer, msecs(1));
     }
 
@@ -222,18 +221,16 @@ void pwm_motor_speed(double u){ //kall noe annet- omgjør output fra can til dut
         PIOC->PIO_CODR|=PIO_PC23; // venstre
         u = (-1)*u;  
     }
-    else {
+    else if (u>0) {
         PIOC->PIO_SODR|=PIO_PC23;  // høyre
     }
-
-    uint32_t duty = u*100;
-
+    else{
+        u=0;
+    }
+    uint32_t duty = u*200;
     // setter riktig pådrag    
     REG_PWM_CDTYUPD0 = duty; // Oppdaterer duty cycle til channel 0
-    PWM->PWM_SCUC = 1; //oppdatere speed cycle
-
-
-    
+    PWM->PWM_SCUC = 1; //oppdatere speed cycle    
 
 }
 
@@ -241,7 +238,7 @@ void pwm_motor_speed(double u){ //kall noe annet- omgjør output fra can til dut
 int32_t motor_calibrate(){
     //går til høyre
     PIOC->PIO_SODR|=PIO_PC23;
-    REG_PWM_CDTYUPD0 = 8000; 
+    REG_PWM_CDTYUPD0 = 20000; 
     Timer timer;
     start_timer(&timer, seconds(2));
     while(!end_timer(&timer)){}
@@ -251,7 +248,7 @@ int32_t motor_calibrate(){
 
     //går til venstre
     PIOC->PIO_CODR|=PIO_PC23; //clear
-    REG_PWM_CDTYUPD0 = 8000; 
+    REG_PWM_CDTYUPD0 = 20000; 
     start_timer(&timer, seconds(2));
     while(!end_timer(&timer)){}
     REG_PWM_CDTYUPD0 = 0; 

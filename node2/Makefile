@@ -14,6 +14,7 @@ SOURCE_FILES = \
 	startercode/PWM.c \
 	startercode/adc.c \
 	startercode/ir.c \
+	startercode/solenoid.c \
 	can_node_2/can_controller.c \
 	can_node_2/can_interrupt.c
 #	filenameN.c

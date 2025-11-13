@@ -44,13 +44,20 @@ int main(){
     adc_values_t cal_data;
     pos_calibrate(&cal_data); //kalibrerer
     adc_values_t pos;
-
+    can_message rx_message;
+can_message out;
     while(1){
         //printf("hei");
         //can_send(&message,0); // Sender melding
         //printf("%d",message.data[0]);
         //can_send1(&message,1);
         send_joystick_pos(&cal_data);
+       //can_read(&rx_message, 0);
+       //can_read_rxb0(&out);
+       if(CAN_try_get(&rx_message)){
+        printf("DATA: %c\n\r", rx_message.data[0]);
+       }
+        //printf("DATA: %c\n\r", out.data[0]);
         //send_btn_R5();
         //can_send(&msg,0);
    

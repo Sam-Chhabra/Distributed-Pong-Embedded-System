@@ -3,6 +3,7 @@
 
 #include "../sam/sam3x/include/sam.h"
 #include "../sam/sam3x/include/sam3x8e.h"
+#include "../can_node_2/can_controller.h"
 
 #include <stdio.h>
 
@@ -19,6 +20,15 @@ void ir_count_score(uint8_t *score, Timer *time){ //flag 0 betyr at den ikke har
     if (ir_blocked() && (end_timer(time))){
         (*score)++;
         start_timer(time, seconds(2));
+        //send mld til node1
+        CAN_MESSAGE message;
+        message.id=0x02;
+        message.data_length = 1;
+        message.data[0]=1;
+        
+        can_send(&message, 1);
+
+
         //delay_ms(1000000);
         printf("score: %u\n\r",(unsigned int)*score);
     }   

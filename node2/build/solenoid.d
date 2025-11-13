@@ -1,5 +1,5 @@
-build/ir.o: startercode/ir.c startercode/ir.h startercode/time.h \
- startercode/adc.h startercode/../sam/sam3x/include/sam.h \
+build/solenoid.o: startercode/solenoid.c startercode/solenoid.h \
+ startercode/../sam/sam3x/include/sam.h \
  startercode/../sam/sam3x/include/sam3x8e.h sam/cmsis/core_cm3.h \
  sam/cmsis/cmsis_version.h sam/cmsis/cmsis_compiler.h \
  sam/cmsis/cmsis_gcc.h sam/cmsis/mpu_armv7.h \
@@ -74,5 +74,4 @@ build/ir.o: startercode/ir.c startercode/ir.h startercode/time.h \
  startercode/../sam/sam3x/include/instance/instance_rtc.h \
  startercode/../sam/sam3x/include/instance/instance_gpbr.h \
  startercode/../sam/sam3x/include/pio/pio_sam3x8e.h \
- startercode/../sam/sam3x/include/sam3x8e.h \
- startercode/../can_node_2/can_controller.h
+ startercode/../sam/sam3x/include/sam3x8e.h

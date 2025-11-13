@@ -75,4 +75,4 @@ build/main.o: main.c sam/sam3x/include/sam.h sam/sam3x/include/sam3x8e.h \
  startercode/uart.h sam/../can_node_2/can_controller.h \
  sam/../can_node_2/can_interrupt.h startercode/PWM.h \
  startercode/../can_node_2/can_controller.h startercode/adc.h \
- startercode/ir.h
+ startercode/ir.h startercode/solenoid.h

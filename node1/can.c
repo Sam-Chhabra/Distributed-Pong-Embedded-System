@@ -32,6 +32,7 @@ static void mcp_abort_all_tx(void){
             (mcp2515_read(MCP_TXB2CTRL) & MCP_TXREQ_BIT) ) { }
     mcp2515_bit_modify(MCP_CANCTRL, CANCTRL_ABAT, 0x00);
 }
+
 static void mcp_flush_rx(void){
     uint8_t f = mcp2515_read(MCP_CANINTF);
     if (f & MCP_RX0IF){
@@ -126,7 +127,7 @@ void can_send(const can_message* msg, uint8_t buffer_n)
 }
 
 void can_read(can_message *message, uint8_t rx_buffer_n){
-    printf("trying to read buffer RD %D \n", rx_buffer_n);
+    //printf("trying to read buffer RD %D \n", rx_buffer_n);
     spi_selectSlave(MCP_SS);
     spi_write(MCP_READ_RX0 + 0x4 * rx_buffer_n); // initiate read of RX buffer n
 
