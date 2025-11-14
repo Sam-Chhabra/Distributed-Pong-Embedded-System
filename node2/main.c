@@ -33,7 +33,7 @@
 //acm0
 #define F_CPU 84000000
 #define BAUD_RATE 9600
-#define BIT_RATE 125000
+#define BIT_RATE 250000
 #define MCK 42000000 
 
 //#define BRP ((MCK / (BIT_RATE * 16)) )
@@ -43,11 +43,19 @@
 //#define SJW   1
 //#define smp 0
 
-#define BRP ((F_CPU/2000000) -1)
-#define phaseseg2 1
-#define phaseseg1   5
-#define propag   6
-#define SJW   0
+//#define BRP ((F_CPU/2000000) -1)
+//#define phaseseg2 1
+//#define phaseseg1   5
+//#define propag   6
+//#define SJW   0
+//#define smp 0
+
+#define TQ 16
+#define BRP 41
+#define propag  (7-1)
+#define phaseseg1 (6-1)
+#define phaseseg2 (2-1)
+#define SJW   (1-1) 
 #define smp 0
 
 void delay_ms(uint16_t tid){
@@ -97,7 +105,7 @@ int main()
 {
     SystemInit();
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
-    uint32_t can_br = ((smp<<24) | (BRP<<16) | (SJW<<12) | (propag<<8) | (phaseseg1<<4) | phaseseg2);
+    uint32_t can_br = ((smp<<24) | (BRP<<16) | ((SJW)<<12) | ((propag)<<8) | ((phaseseg1)<<4) | (phaseseg2));
     can_init_def_tx_rx_mb(can_br);
     dag7_test();
     CAN_MESSAGE message;
@@ -108,29 +116,20 @@ int main()
     Timer timePI;
     timePI.active=1;
     timePI.end_time=time_now();
-    //int32_t min=motor_calibrate();
+    int32_t center=motor_calibrate();
+    printf("center: %d\n\r", center);
     while(1){
+
         ir_count_score(&score, &timeIR);
-        //printf("Motorposisjon: %ld\n\r", (long)motor_read());
+
         if (!can_receive(&message, 0)){
-            //printf("motorpos: %d\n\r",motor_read1(min));
-            
-                //printf("DATAx  node2: %d\n\r", message.data[0]);
-                //printf("DATAy  node2: %d\n\r", message.data[1]);
-                
-                //pwm_motor_pos(&message);
-                //printf("MOTORREAD: %u\n\r" , motor_read());
-                //PI_regulator(&message, &timePI);
-                //delay_ms(1000000);
-                 
+
             if (message.data[2]==1){
-                    
                         solenoid_out();
-                        printf("knapp tryket");
                         delay_ms(10000);
                         solenoid_in();
             }
-                        PI_regulator(&message, &timePI);
+                        PI_regulator(&message, &timePI, center);
                         pwm_servo_pos(&message);
         }  
             

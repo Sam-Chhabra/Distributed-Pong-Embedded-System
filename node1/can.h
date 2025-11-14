@@ -80,10 +80,10 @@
 
 #define BIT_RATE  125000
 #define FOSC_MCP  16000000
-#define BRP   ((FOSC_MCP / (2*BIT_RATE * 16)) -1)
-#define phaseseg2 (6-1)
-#define phaseseg1   (phaseseg2+1)
-#define propag   (2-1)
+#define BRP  3
+#define propag   (7-1)
+#define phaseseg1  (6-1)
+#define phaseseg2 (2-1)
 #define SJW   (1-1)
 #define smp 0
 

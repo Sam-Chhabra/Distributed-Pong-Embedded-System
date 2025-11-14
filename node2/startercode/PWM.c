@@ -87,7 +87,7 @@ PIOC->PIO_OER |= PIO_PC23;  // Sett PC23 som output
 
     // Activate channel
     PWM->PWM_ENA = PWM_ENA_CHID0;   // aktverer klokken på kanal 0
-    motor_calibrate();
+    //motor_calibrate();
 }
 
 //uint16_t data= ADC->ADC_CDR[2]; //ad2
@@ -99,11 +99,13 @@ volatile int32_t motor_read(){
     return val ; 
 }
 
-volatile int32_t motor_read1(uint32_t min){
+volatile int32_t motor_read1(uint32_t center){
     //uint32_t val = REG_TC0_CV0;
     //return val; 100-(motor_read()/14.05);
-    uint32_t val = min + TC2->TC_CHANNEL[0].TC_CV;
-    return 100-(val/14.05) ; 
+    int32_t val = TC2->TC_CHANNEL[0].TC_CV;
+    int32_t dist = val-center;
+
+    return (dist/1406.0)*100.0*-1; 
 }
 /*void pwm_init_motor(){ //  LAB DAG 8
     pwm_init_servo();
@@ -185,14 +187,14 @@ void pwm_servo_pos(CAN_MESSAGE *msg){
 
 }
 
-void PI_regulator(CAN_MESSAGE *msg, Timer *timer){
+void PI_regulator(CAN_MESSAGE *msg, Timer *timer, uint32_t center){
     static double sum;   // static = husker verdien mellom kall
     if (end_timer(timer)){
         double kp=1;
         double ki=1;
-        double T=1/1000; //1 sampling per millisek
+        double T=1.0/1000.0; //1 sampling per millisek
         double ref= (msg->data[0]-100); //joystick -100->100
-        double y = 100-(motor_read()/14.05);//måling fra motor 1->2812, -100 til 100
+        double y = (motor_read1(center)); //motor_read1 gir tall fra -100 -> 100
         if (y<-100){
             y = -100;
         }
@@ -227,7 +229,7 @@ void pwm_motor_speed(double u){ //kall noe annet- omgjør output fra can til dut
     else{
         u=0;
     }
-    uint32_t duty = u*200;
+    uint32_t duty = u*200.0;
     // setter riktig pådrag    
     REG_PWM_CDTYUPD0 = duty; // Oppdaterer duty cycle til channel 0
     PWM->PWM_SCUC = 1; //oppdatere speed cycle    
@@ -257,7 +259,7 @@ int32_t motor_calibrate(){
     printf("max: %d \n\n", max);
     printf("min: %d \n\n", min);
     printf("center: %d \n\n", center);
-    return min;
+    return min+center; //returnerer center value
     
 
 }

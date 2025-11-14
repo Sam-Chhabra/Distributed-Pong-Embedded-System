@@ -82,9 +82,9 @@ void CAN_init_loopback(void)
 void can_normal_init(void){
     mcp2515_init();
     _delay_ms(100);
-    uint8_t CNF1 = 0x43;
-    uint8_t CNF2 = 0xb5;
-    uint8_t CNF3 = 0x01;
+    uint8_t CNF1 = ((SJW)<<6)|(BRP);
+    uint8_t CNF2 = (1<<7)|((phaseseg1)<<3)|((propag)<<0);
+    uint8_t CNF3 = ((phaseseg2)<<0);
 
     mcp2515_write(MCP_CNF3, CNF3);
     mcp2515_write(MCP_CNF2, CNF2);
