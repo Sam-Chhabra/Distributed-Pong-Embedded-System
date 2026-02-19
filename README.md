@@ -141,7 +141,6 @@ Development was performed using:
 ├── node1/              # ATmega162 firmware
 ├── node2/              # ATSAM3X8E firmware
 ├── presentation/       # Project presentation files
-├── images/             # Architecture diagrams
 ├── build/              # Build artifacts (ignored)
 ├── .gitignore
 └── README.md
