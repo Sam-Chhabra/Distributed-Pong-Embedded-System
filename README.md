@@ -217,7 +217,8 @@ Flashing tool:
 
 ## 📑 Presentation
 
-[Download Full Presentation (PDF)](presentation/Pong_game_with_distributed_embedded_control_system.pdf)
+[Download Full Presentation (PDF)](presentation/TTK4155_Pong_Presentation.pdf
+)
 
 ---
 
