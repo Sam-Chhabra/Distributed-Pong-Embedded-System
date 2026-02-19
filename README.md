@@ -1,7 +1,5 @@
 # Distributed-Pong-Embedded-System
 
-Distributed Embedded Ping Pong Control System
-
 This project implements a distributed embedded electromechanical ping pong game developed as part of TTK4155 – Industrial and Embedded Computer Systems Design at NTNU.
 
 The system consists of two interconnected nodes:
