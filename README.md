@@ -1,82 +1,271 @@
 # 🏓 Distributed Pong Embedded Control System
 
-A distributed real-time electromechanical ping pong game developed for  
-**TTK4155 – Embedded & Industrial Computer Systems Design (NTNU)**.
+A distributed real-time electromechanical ping pong game developed for:
+
+**TTK4155 – Embedded & Industrial Computer Systems Design (NTNU)**
+
+This project demonstrates a fully distributed embedded control architecture using two interconnected microcontroller nodes communicating over CAN bus.
 
 ---
 
-## 📌 System Overview
+# 📌 System Overview
 
-The project implements a **two-node distributed embedded system** communicating over a CAN bus.
+The system consists of two independent embedded nodes:
 
-### 🔹 Node 1 – ATmega162
-Handles user interface and high-level game logic.
+## 🧠 Node 1 – ATmega162 (Control & Interface Node)
 
-- External SRAM interface  
-- Address decoding (NAND logic)  
-- ADC joystick input  
-- OLED display (SPI)  
-- CAN controller (MCP2515)  
-- User I/O interface  
+Responsible for:
+- User interface handling
+- ADC joystick sampling
+- OLED display communication (SPI)
+- External SRAM interfacing (XMEM)
+- CAN communication (MCP2515)
+- Game logic management
 
----
-
-### 🔹 Node 2 – ATSAM3X8E (Arduino Due)
-Handles real-time control and electromechanical actuation.
-
-- Servo control (PWM)  
-- DC motor control  
-- Quadrature encoder feedback  
-- IR beam detection  
-- Solenoid activation (via relay + transistor driver)  
+### Key Hardware:
+- ATmega162 development board
+- External SRAM (16 kbit)
+- OLED display (SPI)
+- MCP2515 CAN controller
+- CAN transceiver (MCP2551 / MAX258)
+- Joystick module
+- Breadboard with NAND logic ICs
 
 ---
 
-## 🔄 Communication Architecture
+## ⚙ Node 2 – ATSAM3X8E (Arduino Due) (Actuation Node)
+
+Responsible for:
+- PWM motor control
+- Servo positioning
+- PI control implementation
+- Quadrature encoder feedback processing
+- IR beam detection
+- Relay and solenoid actuation
+- CAN communication
+
+### Key Hardware:
+- Arduino Due (ATSAM3X8E)
+- DC motor + quadrature encoder
+- Servo motor
+- Relay module
+- Solenoid
+- IR sensor
+- CAN transceiver
+
+---
+
+# 🔌 Communication Architecture
 
 The two nodes communicate via:
 
-- **CAN bus (interrupt-driven)**
-- Real-time frame transmission
-- Distributed control structure
+- MCP2515 CAN controller (SPI interface on Node 1)
+- CAN bus (CAN_H / CAN_L differential signaling)
+- Interrupt-driven CAN message handling
 
-This forms a deterministic embedded control system.
+The system forms a distributed real-time control network.
 
 ---
 
-## ⚙️ Key Technical Concepts Implemented
+# ⚡ Control Strategy
 
-- External memory interfacing (XMEM)
-- Address decoding using NAND logic
-- SPI communication
-- CAN protocol (interrupt-driven)
-- ADC sampling and calibration
-- PWM generation (servo + motor)
-- PI motor control
+A PI controller is implemented on Node 2:
+
+```
+u(t) = Kp * e(t) + Ki * ∫ e(t) dt
+```
+
+Where:
+- e(t) = position error
+- Kp = proportional gain
+- Ki = integral gain
+
+Encoder feedback provides real-time motor position data.
+
+PWM signals regulate motor speed and servo actuation.
+
+---
+
+# 🔧 Key Technical Concepts Implemented
+
+- External memory interfacing (ATmega162 XMEM)
+- Address decoding using NAND gates
+- SPI communication (OLED & MCP2515)
+- CAN protocol (interrupt-driven communication)
+- ADC sampling and joystick calibration
+- PWM generation
+- PI motor control (Kp & Ki tuning)
 - Real-time interrupt handling
-- Electromechanical actuation
+- Quadrature encoder processing
+- Electromechanical actuation (relay + solenoid)
 
 ---
 
-## 🎯 Final Result
+# 🛠 Hardware Requirements
 
-A fully functional **computer-controlled distributed ping pong game**, integrating:
+- ATmega162 development board
+- Arduino Due (ATSAM3X8E)
+- MCP2515 CAN controller
+- External SRAM (16 kbit)
+- OLED display (SPI)
+- Joystick module
+- DC motor + encoder
+- Servo motor
+- Relay module
+- Solenoid
+- IR sensor
+- Breadboard + NAND logic ICs
+- CAN transceiver (MCP2551 / MAX258)
 
-- Embedded hardware design  
-- Real-time communication  
-- Low-level driver development  
-- Control systems  
-- Mechanical actuation  
+---
+
+# 💻 Software Requirements
+
+- avr-gcc toolchain
+- ARM GCC (for Arduino Due)
+- Make
+- avrdude
+- openOCD
+
+Development was performed using:
+- Linux / macOS terminal environment
+- Makefiles for automated build and flashing
+- Low-level embedded workflow (no Arduino IDE)
 
 ---
 
-## 🛠 Technologies Used
+# 📁 Project Structure
 
-- C (bare-metal)
-- AVR (ATmega162)
-- ARM Cortex-M3 (ATSAM3X8E)
-- MCP2515 CAN Controller
-- PWM & Timer modules
-- SPI, ADC, External SRAM
+```
+.
+├── node1/              # ATmega162 firmware
+├── node2/              # ATSAM3X8E firmware
+├── presentation/       # Project presentation files
+├── images/             # Architecture diagrams
+├── build/              # Build artifacts (ignored)
+├── .gitignore
+└── README.md
+```
 
 ---
+
+# 🚀 Build, Flash and Run
+
+## Node 1 – ATmega162
+
+Compile:
+```
+make
+```
+
+Flash:
+```
+make flash
+```
+
+Flashing tool:
+- avrdude
+
+---
+
+## Node 2 – ATSAM3X8E (Arduino Due)
+
+Compile:
+```
+make
+```
+
+Flash:
+```
+make flash
+```
+
+Flashing tool:
+- openOCD
+
+---
+
+# ▶ Running the System
+
+1. Connect both nodes to the CAN bus.
+2. Ensure CAN_H and CAN_L are correctly wired.
+3. Power both boards.
+4. Open serial monitor if debugging.
+5. Use joystick to navigate menu.
+6. Start game.
+
+---
+
+# 🎮 User Guide
+
+- Joystick controls paddle position.
+- OLED displays menu and game state.
+- DC motor position is regulated via PI controller.
+- Encoder provides real-time feedback.
+- IR sensor detects scoring.
+- Relay activates solenoid for mechanical interaction.
+
+---
+
+# 🖼 System Architecture
+
+Place architecture images inside:
+
+```
+images/
+```
+
+Example reference:
+
+```
+![System Architecture](images/system_architecture.png)
+```
+
+---
+
+# 📽 Presentation
+
+The full project presentation is available in:
+
+```
+presentation/Pong_game_with_distributed_embedded_control_system.pdf
+```
+
+---
+
+# 🎥 Demonstration Video
+
+Demo video link:
+
+```
+https://youtube.com/your-link-here
+```
+
+---
+
+# 👥 Team Members & Contributions
+
+## Samrath Singh Chhabra
+- Implemented Node 1 firmware
+- SPI communication (OLED + MCP2515)
+- ADC joystick calibration
+- CAN integration
+- System-level integration
+- Testing and debugging
+
+(Add other members and clearly specify their contributions.)
+
+---
+
+# 🏁 Conclusion
+
+This project demonstrates:
+
+- Distributed embedded systems design
+- Real-time interrupt-driven communication
+- Low-level hardware interfacing
+- Closed-loop motor control
+- Multi-node CAN architecture
+- Complete electromechanical system integration
+
+The final result is a fully functional distributed embedded Pong game built entirely using low-level embedded programming and real-time control principles.
