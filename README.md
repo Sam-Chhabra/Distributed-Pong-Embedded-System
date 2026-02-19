@@ -208,17 +208,8 @@ Flashing tool:
 ---
 
 # 🖼 System Architecture
-
-Place architecture images inside:
-
 ```
-images/
-```
-
-Example reference:
-
-```
-![System Architecture](images/system_architecture.png)
+![System Architecture](presentation/images/Architecture.png)
 ```
 
 ---
@@ -238,22 +229,31 @@ presentation/Pong_game_with_distributed_embedded_control_system.pdf
 Demo video link:
 
 ```
-https://youtube.com/your-link-here
+https://youtu.be/vGaRm5OW-wA
 ```
 
 ---
 
-# 👥 Team Members & Contributions
+## 👥 Team Members & Contributions
 
-## Samrath Singh Chhabra
-- Implemented Node 1 firmware
-- SPI communication (OLED + MCP2515)
-- ADC joystick calibration
-- CAN integration
-- System-level integration
-- Testing and debugging
+### Samrath Singh Chhabra – System Architecture & Lead Developer
+- Designed overall distributed system architecture  
+- Implemented CAN communication (MCP2515 + SPI)  
+- Implemented external SRAM (XMEM) and address decoding  
+- Developed ADC joystick calibration and OLED interface  
+- Implemented PWM and PI motor control with encoder feedback  
+- Integrated relay, solenoid, and full system testing  
 
-(Add other members and clearly specify their contributions.)
+### Selma Ruud Landmark – Embedded Software & Testing
+- Assisted with SPI and CAN communication testing  
+- Contributed to firmware debugging and validation  
+- Supported hardware wiring and integration  
+- Assisted in documentation and presentation  
+
+### Ingrid Skålnes Strømme – Hardware & Validation
+- Contributed to hardware assembly and mechanical setup  
+- Assisted with motor, IR sensor, and actuator testing  
+- Supported documentation and final validation  
 
 ---
 
