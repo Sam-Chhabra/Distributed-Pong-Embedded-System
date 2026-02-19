@@ -207,30 +207,23 @@ Flashing tool:
 
 ---
 
-# 🖼 System Architecture
-```
+---
+
+## 🖼 System Architecture
+
 ![System Architecture](presentation/images/Architecture.png)
-```
 
 ---
 
-# 📽 Presentation
+## 📑 Presentation
 
-The full project presentation is available in:
-
-```
-presentation/Pong_game_with_distributed_embedded_control_system.pdf
-```
+[Download Full Presentation (PDF)](presentation/Pong_game_with_distributed_embedded_control_system.pdf)
 
 ---
 
-# 🎥 Demonstration Video
+## 🎥 Demonstration Video
 
-Demo video link:
-
-```
-https://youtu.be/vGaRm5OW-wA
-```
+[Watch the Demo Video on YouTube](https://youtu.be/VgARm50w-wA)
 
 ---
 
