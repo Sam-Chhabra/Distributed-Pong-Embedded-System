@@ -224,7 +224,7 @@ Flashing tool:
 
 ## 🎥 Demonstration Video
 
-[Watch the Demo Video on YouTube](https://youtu.be/VgARm50w-wA)
+[Watch the Demo Video on YouTube](https://youtu.be/vGaRm5OW-wA?si=CVA9CVIzg9m92qcd)
 
 ---
 
