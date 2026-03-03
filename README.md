@@ -261,4 +261,4 @@ This project demonstrates:
 - Multi-node CAN architecture
 - Complete electromechanical system integration
 
-The final result is a fully functional distributed embedded Pong game built entirely using low-level embedded programming and real-time control principles.
+The final result is a fully functional distributed embedded pong game built entirely using low-level embedded programming and real-time control principles.
