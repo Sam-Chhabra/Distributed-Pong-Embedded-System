@@ -229,7 +229,7 @@ Flashing tool:
 
 ## 👥 Team Members & Contributions
 
-### Samrath Singh Chhabra – System Architecture & Lead Developer
+### Sam Chhabra – System Architecture & Lead Developer
 - Designed overall distributed system architecture  
 - Implemented CAN communication (MCP2515 + SPI)  
 - Implemented external SRAM (XMEM) and address decoding  
